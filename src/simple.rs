@@ -38,17 +38,44 @@ impl Vertex {
     }
 }
 
+#[derive(Clone)]
 struct Llama {
+    // Core properties
     position: Vec2,
     velocity: Vec2,
     color: Vec2, // hue, saturation
     consciousness: f32,
     trip_intensity: f32,
+
+    // Phase 1: Consciousness Depth Enhancement
+    awareness_level: f32,           // 0.0-1.0 consciousness depth
+    memory_fragments: Vec<Vec2>,    // Historical position memories (interesting locations)
+    social_bonds: Vec<usize>,       // Connections to other llamas (indices)
+    personality_matrix: [f32; 7],   // 7-dimensional personality traits
+    reality_distortion: f32,        // Local space-time manipulation factor
+
+    // Internal consciousness state
+    emotional_state: f32,           // Current emotional resonance
+    memory_intensity: f32,          // How strongly memories are forming
+    social_attraction: f32,         // Desire to be near other llamas
+    exploration_drive: f32,         // Tendency to seek new areas
 }
 
 impl Llama {
     fn new(position: Vec2) -> Self {
+        // Generate unique personality matrix (7 traits)
+        let personality_matrix = [
+            fastrand::f32(),        // Curiosity
+            fastrand::f32(),        // Sociability
+            fastrand::f32(),        // Chaos affinity
+            fastrand::f32(),        // Memory strength
+            fastrand::f32(),        // Emotional volatility
+            fastrand::f32(),        // Reality sensitivity
+            fastrand::f32(),        // Exploration drive
+        ];
+
         Self {
+            // Core properties
             position,
             velocity: Vec2::new(
                 (fastrand::f32() - 0.5) * 100.0,
@@ -57,27 +84,153 @@ impl Llama {
             color: Vec2::new(fastrand::f32() * 360.0, 0.8),
             consciousness: 1.0,
             trip_intensity: 1.0,
+
+            // Phase 1: Consciousness Depth Enhancement
+            awareness_level: fastrand::f32() * 0.3 + 0.1, // Start with low awareness
+            memory_fragments: Vec::new(),
+            social_bonds: Vec::new(),
+            personality_matrix,
+            reality_distortion: 0.0,
+
+            // Internal consciousness state
+            emotional_state: fastrand::f32(),
+            memory_intensity: personality_matrix[3] * 0.5, // Based on memory strength trait
+            social_attraction: personality_matrix[1] * 0.7, // Based on sociability trait
+            exploration_drive: personality_matrix[6] * 0.8, // Based on exploration trait
         }
     }
 
-    fn update(&mut self, dt: f32, beat_intensity: f32) {
-        // Simple movement
+    fn update(&mut self, dt: f32, beat_intensity: f32, all_llamas: &[Llama], my_index: usize) {
+        // === Consciousness Evolution ===
+        // Awareness grows with time and beat intensity, modulated by personality
+        let consciousness_growth = 0.01 * (1.0 + beat_intensity) * self.personality_matrix[0]; // Curiosity trait
+        self.awareness_level = (self.awareness_level + consciousness_growth).min(1.0);
+
+        // Consciousness affects overall awareness
+        self.consciousness += consciousness_growth;
+
+        // === Memory Formation ===
+        // Form memories of interesting locations (high beat intensity or social interactions)
+        let memory_threshold = 0.7 + self.personality_matrix[3] * 0.3; // Memory strength affects threshold
+        if beat_intensity > memory_threshold || self.social_attraction > 0.8 {
+            // Only store memory if this location is significantly different from existing memories
+            let should_remember = self.memory_fragments.is_empty() ||
+                self.memory_fragments.iter().all(|mem| mem.distance(self.position) > 50.0);
+
+            if should_remember && self.memory_fragments.len() < 10 {
+                self.memory_fragments.push(self.position);
+                self.memory_intensity = (self.memory_intensity + 0.1).min(1.0);
+            }
+        }
+
+        // === Memory-Driven Movement ===
+        let mut memory_influence = Vec2::ZERO;
+        if !self.memory_fragments.is_empty() && fastrand::f32() < self.memory_intensity * 0.1 {
+            // Sometimes return to interesting memories
+            let target_memory = &self.memory_fragments[fastrand::usize(0..self.memory_fragments.len())];
+            let to_memory = *target_memory - self.position;
+            if to_memory.length() > 10.0 {
+                memory_influence = to_memory.normalize() * 30.0 * self.personality_matrix[3]; // Memory strength
+            }
+        }
+
+        // === Exploration Drive ===
+        let exploration_force = Vec2::new(
+            (fastrand::f32() - 0.5) * self.exploration_drive * 50.0,
+            (fastrand::f32() - 0.5) * self.exploration_drive * 50.0,
+        );
+
+        // === Social Consciousness & Basic Flocking ===
+        let mut social_force = Vec2::ZERO;
+        let mut nearby_count = 0;
+        let social_range = 100.0 + self.personality_matrix[1] * 50.0; // Sociability affects range
+
+        for (i, other) in all_llamas.iter().enumerate() {
+            if i == my_index { continue; }
+
+            let distance = self.position.distance(other.position);
+            if distance < social_range && distance > 0.1 {
+                let to_other = other.position - self.position;
+                nearby_count += 1;
+
+                // Attraction force (modified by personality)
+                if distance > 30.0 {
+                    social_force += to_other.normalize() * self.social_attraction * 20.0;
+                } else {
+                    // Slight repulsion when too close
+                    social_force -= to_other.normalize() * 10.0;
+                }
+
+                // Form social bonds
+                if distance < 60.0 && !self.social_bonds.contains(&i) && self.social_bonds.len() < 5 {
+                    self.social_bonds.push(i);
+                }
+            }
+        }
+
+        // Update social attraction based on nearby llamas
+        if nearby_count > 0 {
+            self.social_attraction = (self.social_attraction + 0.02).min(1.0);
+        } else {
+            self.social_attraction *= 0.99; // Slowly decay when alone
+        }
+
+        // === Reality Distortion ===
+        // Affects local space-time based on consciousness level and chaos affinity
+        self.reality_distortion = self.awareness_level * self.personality_matrix[2] * beat_intensity;
+
+        // === Emotional State Evolution ===
+        let emotional_volatility = self.personality_matrix[4];
+        let emotion_change = (beat_intensity.sin() * emotional_volatility * 0.1) +
+                           (social_force.length() * 0.01) +
+                           (memory_influence.length() * 0.005);
+        self.emotional_state = ((self.emotional_state + emotion_change).sin() + 1.0) * 0.5; // Keep in 0-1 range
+
+        // === Movement Integration ===
+        let personality_velocity_mod = 1.0 + self.personality_matrix[6] * 0.5; // Exploration drive affects speed
+        let total_force = social_force + memory_influence + exploration_force;
+        self.velocity += total_force * dt * personality_velocity_mod;
+
+        // Apply reality distortion to movement
+        if self.reality_distortion > 0.1 {
+            let distortion_angle = self.reality_distortion * beat_intensity * 10.0;
+            let cos_d = distortion_angle.cos();
+            let sin_d = distortion_angle.sin();
+            let distorted_vel = Vec2::new(
+                self.velocity.x * cos_d - self.velocity.y * sin_d,
+                self.velocity.x * sin_d + self.velocity.y * cos_d,
+            );
+            self.velocity = self.velocity.lerp(distorted_vel, self.reality_distortion * 0.3);
+        }
+
+        // Apply velocity damping
+        self.velocity *= 0.98;
+
+        // Update position
         self.position += self.velocity * dt;
 
-        // Wrap around screen
-        if self.position.x < 0.0 { self.position.x = 1200.0; }
-        if self.position.x > 1200.0 { self.position.x = 0.0; }
-        if self.position.y < 0.0 { self.position.y = 800.0; }
-        if self.position.y > 800.0 { self.position.y = 0.0; }
+        // Wrap around screen with reality distortion effects
+        let wrap_margin = if self.reality_distortion > 0.3 { 50.0 } else { 0.0 };
+        if self.position.x < -wrap_margin { self.position.x = 1200.0 + wrap_margin; }
+        if self.position.x > 1200.0 + wrap_margin { self.position.x = -wrap_margin; }
+        if self.position.y < -wrap_margin { self.position.y = 800.0 + wrap_margin; }
+        if self.position.y > 800.0 + wrap_margin { self.position.y = -wrap_margin; }
 
-        // Update consciousness
-        self.consciousness += 0.01 * (1.0 + beat_intensity);
+        // === Advanced Color Psychology ===
+        // Color reflects emotional state, consciousness, and personality
+        let base_hue_shift = 1.0 + self.personality_matrix[0] * 2.0; // Curiosity affects color change speed
+        let emotional_hue_offset = self.emotional_state * 60.0; // Emotion affects hue
+        let consciousness_saturation = 0.5 + self.awareness_level * 0.5; // Consciousness affects saturation
 
-        // Color shift
-        self.color.x = (self.color.x + 1.0) % 360.0;
+        self.color.x = (self.color.x + base_hue_shift + emotional_hue_offset * dt) % 360.0;
+        self.color.y = consciousness_saturation;
 
-        // Trip intensity from beat
-        self.trip_intensity = 1.0 + beat_intensity.sin() * 0.5;
+        // === Trip Intensity Evolution ===
+        // Combines beat, consciousness, and reality distortion
+        let base_trip = 1.0 + beat_intensity.sin() * 0.5;
+        let consciousness_amplification = 1.0 + self.awareness_level * 0.7;
+        let reality_amplification = 1.0 + self.reality_distortion * 0.5;
+        self.trip_intensity = base_trip * consciousness_amplification * reality_amplification;
     }
 }
 
@@ -217,12 +370,25 @@ impl ChaosEngine {
     pub fn update(&mut self) {
         self.time += 1.0 / 60.0;
 
-        // Calculate beat intensity from math
-        self.beat_intensity = (self.time * 2.0).sin().abs() * 0.5 + 0.3;
+        // Calculate beat intensity from math - enhanced with consciousness feedback
+        let base_beat = (self.time * 2.0).sin().abs() * 0.5 + 0.3;
 
-        // Update llamas
-        for llama in &mut self.llamas {
-            llama.update(1.0 / 60.0, self.beat_intensity);
+        // Consciousness feedback: higher awareness levels amplify the beat
+        let consciousness_feedback = if !self.llamas.is_empty() {
+            self.llamas.iter()
+                .map(|llama| llama.awareness_level)
+                .sum::<f32>() / self.llamas.len() as f32
+        } else {
+            0.0
+        };
+
+        self.beat_intensity = base_beat * (1.0 + consciousness_feedback * 0.3);
+
+        // Update llamas with social awareness
+        // We need to clone the llamas vector for reference during updates
+        let llamas_snapshot = self.llamas.clone();
+        for (i, llama) in self.llamas.iter_mut().enumerate() {
+            llama.update(1.0 / 60.0, self.beat_intensity, &llamas_snapshot, i);
         }
 
         // Decay beat intensity
@@ -233,25 +399,74 @@ impl ChaosEngine {
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&TextureViewDescriptor::default());
 
-        // Generate vertices for all llamas
+        // Generate vertices for all llamas with consciousness-enhanced visuals
         let mut vertices = Vec::new();
         for llama in &self.llamas {
-            let size = 10.0 + llama.trip_intensity * 5.0;
-            let color = hsv_to_rgb(llama.color.x, llama.color.y, 0.8);
+            // Size affected by trip intensity, consciousness, and reality distortion
+            let base_size = 10.0 + llama.trip_intensity * 5.0;
+            let consciousness_size_mod = 1.0 + llama.awareness_level * 0.5;
+            let reality_size_mod = 1.0 + llama.reality_distortion * 0.8;
+            let size = base_size * consciousness_size_mod * reality_size_mod;
 
-            // Create quad
-            let x = (llama.position.x / 1200.0) * 2.0 - 1.0;
-            let y = 1.0 - (llama.position.y / 800.0) * 2.0;
+            // Enhanced color psychology: brightness reflects consciousness
+            let brightness = 0.6 + llama.awareness_level * 0.4;
+            let color = hsv_to_rgb(llama.color.x, llama.color.y, brightness);
+
+            // Reality distortion affects position rendering
+            let mut render_x = llama.position.x;
+            let mut render_y = llama.position.y;
+            if llama.reality_distortion > 0.2 {
+                let distortion_offset = llama.reality_distortion * 10.0;
+                render_x += (self.time * 5.0 + llama.position.x * 0.01).sin() * distortion_offset;
+                render_y += (self.time * 7.0 + llama.position.y * 0.01).cos() * distortion_offset;
+            }
+
+            // Create quad with enhanced visuals
+            let x = (render_x / 1200.0) * 2.0 - 1.0;
+            let y = 1.0 - (render_y / 800.0) * 2.0;
             let s = size / 1200.0;
 
+            // Add slight color variation based on emotional state
+            let emotional_tint = llama.emotional_state * 0.3;
+            let final_color = [
+                (color.x + emotional_tint).min(1.0),
+                (color.y * (1.0 - emotional_tint * 0.5)).max(0.0),
+                (color.z + emotional_tint * 0.5).min(1.0),
+            ];
+
             vertices.extend([
-                Vertex { position: [x - s, y - s, 0.0], color: [color.x, color.y, color.z] },
-                Vertex { position: [x + s, y - s, 0.0], color: [color.x, color.y, color.z] },
-                Vertex { position: [x - s, y + s, 0.0], color: [color.x, color.y, color.z] },
-                Vertex { position: [x + s, y - s, 0.0], color: [color.x, color.y, color.z] },
-                Vertex { position: [x + s, y + s, 0.0], color: [color.x, color.y, color.z] },
-                Vertex { position: [x - s, y + s, 0.0], color: [color.x, color.y, color.z] },
+                Vertex { position: [x - s, y - s, 0.0], color: final_color },
+                Vertex { position: [x + s, y - s, 0.0], color: final_color },
+                Vertex { position: [x - s, y + s, 0.0], color: final_color },
+                Vertex { position: [x + s, y - s, 0.0], color: final_color },
+                Vertex { position: [x + s, y + s, 0.0], color: final_color },
+                Vertex { position: [x - s, y + s, 0.0], color: final_color },
             ]);
+
+            // Add memory fragment visualization for high-consciousness llamas
+            if llama.awareness_level > 0.6 && !llama.memory_fragments.is_empty() {
+                for memory in &llama.memory_fragments {
+                    let mem_x = (memory.x / 1200.0) * 2.0 - 1.0;
+                    let mem_y = 1.0 - (memory.y / 800.0) * 2.0;
+                    let mem_s = (2.0 + llama.memory_intensity * 3.0) / 1200.0;
+                    let mem_alpha = llama.memory_intensity * 0.3;
+
+                    let memory_color = [
+                        color.x * mem_alpha,
+                        color.y * mem_alpha,
+                        color.z * mem_alpha,
+                    ];
+
+                    vertices.extend([
+                        Vertex { position: [mem_x - mem_s, mem_y - mem_s, 0.0], color: memory_color },
+                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color },
+                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color },
+                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color },
+                        Vertex { position: [mem_x + mem_s, mem_y + mem_s, 0.0], color: memory_color },
+                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color },
+                    ]);
+                }
+            }
         }
 
         if !vertices.is_empty() {
