@@ -2,6 +2,8 @@ pub mod ecs;
 pub mod memory;
 pub mod time;
 pub mod events;
+pub mod safety;
+pub mod warning;
 
 use anyhow::Result;
 use winit::window::Window;

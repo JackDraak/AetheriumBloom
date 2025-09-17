@@ -3,12 +3,225 @@
 use anyhow::Result;
 use wgpu::*;
 use winit::{
-    event::{WindowEvent, ElementState, MouseButton},
+    event::{WindowEvent, ElementState, MouseButton, KeyEvent},
     event_loop::EventLoop,
     window::Window,
     application::ApplicationHandler,
+    keyboard::{Key, NamedKey},
 };
-use glam::Vec2;
+use glam::{Vec2, Vec3};
+use std::io::{self, Write};
+
+// === CRITICAL SAFETY SYSTEMS FOR EPILEPSY PROTECTION ===
+
+/// User's response to safety warning
+#[derive(Debug, Clone, PartialEq)]
+pub enum WarningResponse {
+    Continue,     // User accepts risk and wants full visual effects
+    SafetyMode,   // User wants reduced visual intensity
+    Exit,         // User chooses to exit
+}
+
+/// Simple safety configuration
+#[derive(Debug, Clone)]
+pub struct SafetyConfig {
+    pub visual_intensity_limit: f32,  // 0.0 to 1.0
+    pub max_flash_rate: f32,          // Hz (3.0 is international standard)
+    pub max_luminance_change: f32,    // 0.0 to 1.0 (0.1 is 10% standard)
+    pub red_flash_protection: bool,
+}
+
+impl Default for SafetyConfig {
+    fn default() -> Self {
+        Self {
+            visual_intensity_limit: 1.0,     // Full intensity by default
+            max_flash_rate: 3.0,             // International safety standard
+            max_luminance_change: 0.1,       // 10% WCAG standard
+            red_flash_protection: true,
+        }
+    }
+}
+
+impl SafetyConfig {
+    pub fn safe_mode() -> Self {
+        Self {
+            visual_intensity_limit: 0.5,     // 50% intensity
+            max_flash_rate: 2.0,             // Even more conservative
+            max_luminance_change: 0.05,      // 5% change
+            red_flash_protection: true,
+        }
+    }
+}
+
+/// Simple flash tracker to enforce rate limiting
+#[derive(Debug)]
+pub struct FlashTracker {
+    last_major_change: f64,
+    change_count_in_window: u32,
+    window_start_time: f64,
+    window_duration: f64,
+}
+
+impl FlashTracker {
+    pub fn new() -> Self {
+        Self {
+            last_major_change: 0.0,
+            change_count_in_window: 0,
+            window_start_time: 0.0,
+            window_duration: 1.0, // 1 second window
+        }
+    }
+
+    pub fn can_allow_flash(&mut self, current_time: f64, max_rate: f32) -> bool {
+        // Reset window if needed
+        if current_time - self.window_start_time > self.window_duration {
+            self.window_start_time = current_time;
+            self.change_count_in_window = 0;
+        }
+
+        // Check if we're under the rate limit
+        let flashes_per_second = self.change_count_in_window as f32 / self.window_duration as f32;
+        if flashes_per_second >= max_rate {
+            return false;
+        }
+
+        // Check minimum interval (1/3 Hz = 0.33 seconds for 3 Hz)
+        let min_interval = 1.0 / max_rate as f64;
+        if current_time - self.last_major_change < min_interval {
+            return false;
+        }
+
+        true
+    }
+
+    pub fn record_flash(&mut self, current_time: f64) {
+        self.last_major_change = current_time;
+        self.change_count_in_window += 1;
+    }
+}
+
+/// Calculate perceived luminance of a color
+fn calculate_luminance(color: &Vec3) -> f32 {
+    // ITU-R BT.709 luma coefficients
+    0.2126 * color.x + 0.7152 * color.y + 0.0722 * color.z
+}
+
+/// Limit luminance changes to safe levels
+fn limit_luminance_change(new_color: Vec3, old_color: Vec3, max_change: f32) -> Vec3 {
+    let new_luma = calculate_luminance(&new_color);
+    let old_luma = calculate_luminance(&old_color);
+    let change = (new_luma - old_luma).abs();
+
+    if change <= max_change {
+        return new_color;
+    }
+
+    // Interpolate to safe level
+    let safe_factor = max_change / change;
+    old_color.lerp(new_color, safe_factor * 0.5) // Extra conservative with 0.5 factor
+}
+
+/// Check if color is in dangerous red range
+fn is_dangerous_red(color: Vec3) -> bool {
+    let hsv = rgb_to_hsv(color);
+    (hsv.x >= 345.0 || hsv.x <= 15.0) && hsv.y > 0.5 && hsv.z > 0.5
+}
+
+/// Convert RGB to HSV
+fn rgb_to_hsv(rgb: Vec3) -> Vec3 {
+    let max = rgb.x.max(rgb.y.max(rgb.z));
+    let min = rgb.x.min(rgb.y.min(rgb.z));
+    let delta = max - min;
+
+    let hue = if delta == 0.0 {
+        0.0
+    } else if max == rgb.x {
+        60.0 * (((rgb.y - rgb.z) / delta) % 6.0)
+    } else if max == rgb.y {
+        60.0 * ((rgb.z - rgb.x) / delta + 2.0)
+    } else {
+        60.0 * ((rgb.x - rgb.y) / delta + 4.0)
+    };
+
+    let saturation = if max == 0.0 { 0.0 } else { delta / max };
+    let value = max;
+
+    Vec3::new(hue.abs(), saturation, value)
+}
+
+/// Show console safety warning and get user response
+fn show_epilepsy_warning() -> WarningResponse {
+    println!("\n{}", "=".repeat(80));
+    println!("⚠️  PHOTOSENSITIVE EPILEPSY WARNING ⚠️");
+    println!("{}", "=".repeat(80));
+    println!();
+    println!("AetheriumBloom contains flashing lights and visual effects that may");
+    println!("trigger seizures in individuals with photosensitive epilepsy.");
+    println!();
+    println!("🚨 IF YOU OR ANYONE IN YOUR FAMILY HAS A HISTORY OF SEIZURES OR EPILEPSY,");
+    println!("   CONSULT A DOCTOR BEFORE USING THIS SOFTWARE.");
+    println!();
+    println!("⚠️  STOP USING IMMEDIATELY IF YOU EXPERIENCE:");
+    println!("   • Dizziness, nausea, or disorientation");
+    println!("   • Altered vision or muscle twitching");
+    println!("   • Loss of awareness or convulsions");
+    println!();
+    println!("✅ SAFETY RECOMMENDATIONS:");
+    println!("   • Use in a well-lit room");
+    println!("   • Sit at least 2 feet from screen");
+    println!("   • Take breaks every 30 minutes");
+    println!();
+    println!("🛡️  BUILT-IN SAFETY FEATURES:");
+    println!("   • Flash rate limited to 3 Hz (international standard)");
+    println!("   • Luminance changes capped at 10%");
+    println!("   • Red flash protection enabled");
+    println!("   • Emergency stop available (ESC key)");
+    println!();
+    println!("{}", "=".repeat(80));
+    println!();
+    println!("CHOOSE YOUR RESPONSE:");
+    println!("  [C] CONTINUE - I understand the risks and want full visual effects");
+    println!("  [S] SAFETY MODE - Continue with reduced visual intensity (50%)");
+    println!("  [E] EXIT - I want to exit the application");
+    println!();
+    print!("Enter your choice (C/S/E): ");
+
+    io::stdout().flush().unwrap();
+
+    let mut input = String::new();
+    match io::stdin().read_line(&mut input) {
+        Ok(_) => {
+            let choice = input.trim().to_uppercase();
+            match choice.as_str() {
+                "C" | "CONTINUE" => {
+                    println!("✅ Continuing with full visual effects...");
+                    println!("⚠️  Remember: Press ESC at any time for emergency stop!");
+                    WarningResponse::Continue
+                }
+                "S" | "SAFETY" | "SAFE" => {
+                    println!("✅ Continuing in Safety Mode (50% visual intensity)...");
+                    println!("⚠️  Remember: Press ESC at any time for emergency stop!");
+                    WarningResponse::SafetyMode
+                }
+                "E" | "EXIT" => {
+                    println!("👋 Exiting AetheriumBloom. Stay safe!");
+                    WarningResponse::Exit
+                }
+                _ => {
+                    println!("❌ Invalid choice. Defaulting to exit for safety.");
+                    WarningResponse::Exit
+                }
+            }
+        }
+        Err(_) => {
+            println!("❌ Error reading input. Defaulting to exit for safety.");
+            WarningResponse::Exit
+        }
+    }
+}
+
+// === END SAFETY SYSTEMS ===
+
 // Mathematical chaos engine using pre-calculated primes
 
 #[repr(C)]
@@ -590,6 +803,12 @@ pub struct ChaosEngine {
     advanced_beat_engine: AdvancedBeatEngine,
     species_spawn_weights: [f32; 3], // [DiscoLlama, QuantumSheep, HypnoCamel]
     total_consciousness: f32,
+
+    // CRITICAL SAFETY SYSTEMS - EPILEPSY PROTECTION
+    safety_config: SafetyConfig,
+    flash_tracker: FlashTracker,
+    emergency_stop_requested: bool,
+    previous_llama_colors: Vec<Vec3>, // Track previous colors for luminance limiting
 }
 
 impl ChaosEngine {
@@ -701,6 +920,12 @@ impl ChaosEngine {
             advanced_beat_engine: AdvancedBeatEngine::new(),
             species_spawn_weights: [0.6, 0.25, 0.15], // Favor disco llamas initially
             total_consciousness: 0.0,
+
+            // CRITICAL SAFETY SYSTEMS - EPILEPSY PROTECTION
+            safety_config: SafetyConfig::default(),
+            flash_tracker: FlashTracker::new(),
+            emergency_stop_requested: false,
+            previous_llama_colors: Vec::new(),
         })
     }
 
@@ -710,6 +935,24 @@ impl ChaosEngine {
             self.config.height = new_size.height;
             self.surface.configure(&self.device, &self.config);
         }
+    }
+
+    /// Configure the engine for safety mode
+    pub fn enable_safety_mode(&mut self) {
+        self.safety_config = SafetyConfig::safe_mode();
+        println!("🛡️ SAFETY MODE ENABLED - Visual effects reduced to 50% intensity");
+        println!("🛡️ Flash rate limited to 2 Hz, luminance changes limited to 5%");
+    }
+
+    /// Handle emergency stop request
+    pub fn request_emergency_stop(&mut self) {
+        self.emergency_stop_requested = true;
+        println!("🚨 EMERGENCY STOP ACTIVATED - All visual effects suppressed");
+    }
+
+    /// Check if emergency stop is active
+    pub fn is_emergency_stop_active(&self) -> bool {
+        self.emergency_stop_requested
     }
 
     pub fn handle_click(&mut self, _button: MouseButton, state: ElementState) {
@@ -820,12 +1063,22 @@ impl ChaosEngine {
     }
 
     pub fn render(&mut self) -> Result<(), SurfaceError> {
+        // CRITICAL SAFETY CHECK - Emergency stop overrides everything
+        if self.emergency_stop_requested {
+            return self.render_emergency_stop();
+        }
+
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&TextureViewDescriptor::default());
 
-        // Generate vertices for all llamas with Phase 2 species-enhanced visuals
+        // Ensure we have color tracking for all llamas
+        while self.previous_llama_colors.len() < self.llamas.len() {
+            self.previous_llama_colors.push(Vec3::new(0.1, 0.1, 0.1)); // Safe default
+        }
+
+        // Generate vertices for all llamas with Phase 2 species-enhanced visuals AND SAFETY FILTERING
         let mut vertices = Vec::new();
-        for llama in &self.llamas {
+        for (llama_id, llama) in self.llamas.iter().enumerate() {
             // Species-specific size calculation
             let base_size = match llama.species {
                 SpeciesType::DiscoLlama => 10.0 + llama.trip_intensity * 5.0,
@@ -840,7 +1093,45 @@ impl ChaosEngine {
 
             // Enhanced color psychology: brightness reflects consciousness
             let brightness = 0.6 + llama.awareness_level * 0.4;
-            let color = hsv_to_rgb(llama.color.x, llama.color.y, brightness);
+            let mut color = hsv_to_rgb(llama.color.x, llama.color.y, brightness);
+
+            // CRITICAL SAFETY: Apply all safety measures
+            let previous_color = self.previous_llama_colors[llama_id];
+
+            // 1. Apply flash rate limiting
+            let current_time = self.time as f64;
+            let color_change = calculate_luminance(&color) - calculate_luminance(&previous_color);
+            let is_major_change = color_change.abs() > 0.05; // 5% threshold for major change
+
+            if is_major_change {
+                if !self.flash_tracker.can_allow_flash(current_time, self.safety_config.max_flash_rate) {
+                    // Flash blocked - use previous color
+                    color = previous_color;
+                } else {
+                    // Flash allowed - record it
+                    self.flash_tracker.record_flash(current_time);
+                }
+            }
+
+            // 2. Apply luminance change limiting
+            color = limit_luminance_change(color, previous_color, self.safety_config.max_luminance_change);
+
+            // 3. Apply red flash protection
+            if self.safety_config.red_flash_protection && is_dangerous_red(color) && is_major_change {
+                // Shift dangerous red to safe orange
+                let hsv = rgb_to_hsv(color);
+                let safe_hue = if hsv.x >= 345.0 { 30.0 } else { 30.0 }; // Orange
+                color = hsv_to_rgb_vec3(Vec3::new(safe_hue, hsv.y * 0.8, hsv.z));
+            }
+
+            // 4. Apply visual intensity limiting
+            if self.safety_config.visual_intensity_limit < 1.0 {
+                let safe_color = Vec3::new(0.2, 0.2, 0.2); // Safe dim color
+                color = safe_color.lerp(color, self.safety_config.visual_intensity_limit);
+            }
+
+            // Update previous color for next frame
+            self.previous_llama_colors[llama_id] = color;
 
             // Reality distortion affects position rendering
             let mut render_x = llama.position.x;
@@ -941,6 +1232,64 @@ impl ChaosEngine {
 
         Ok(())
     }
+
+    /// Render emergency stop screen - minimal safe visuals
+    fn render_emergency_stop(&mut self) -> Result<(), SurfaceError> {
+        let output = self.surface.get_current_texture()?;
+        let view = output.texture.create_view(&TextureViewDescriptor::default());
+
+        let mut encoder = self.device.create_command_encoder(&CommandEncoderDescriptor {
+            label: Some("Emergency Stop Render Encoder"),
+        });
+
+        {
+            let _render_pass = encoder.begin_render_pass(&RenderPassDescriptor {
+                label: Some("Emergency Stop Render Pass"),
+                color_attachments: &[Some(RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    ops: Operations {
+                        load: LoadOp::Clear(Color {
+                            r: 0.05, // Very dim safe color
+                            g: 0.05,
+                            b: 0.05,
+                            a: 1.0,
+                        }),
+                        store: StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+
+            // No visual effects during emergency stop
+        }
+
+        self.queue.submit(std::iter::once(encoder.finish()));
+        output.present();
+
+        Ok(())
+    }
+
+    /// Handle keyboard input for emergency stop
+    pub fn handle_keyboard(&mut self, key_event: &KeyEvent) {
+        if key_event.state == ElementState::Pressed {
+            match &key_event.logical_key {
+                Key::Named(NamedKey::Escape) => {
+                    if self.emergency_stop_requested {
+                        // Toggle emergency stop off
+                        self.emergency_stop_requested = false;
+                        println!("✅ Emergency stop deactivated - Visual effects resumed");
+                    } else {
+                        // Activate emergency stop
+                        self.request_emergency_stop();
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
 }
 
 fn hsv_to_rgb(h: f32, s: f32, v: f32) -> glam::Vec3 {
@@ -962,9 +1311,15 @@ fn hsv_to_rgb(h: f32, s: f32, v: f32) -> glam::Vec3 {
     glam::Vec3::new(r + m, g + m, b + m)
 }
 
+/// HSV to RGB conversion for Vec3 input
+fn hsv_to_rgb_vec3(hsv: Vec3) -> Vec3 {
+    hsv_to_rgb(hsv.x, hsv.y, hsv.z)
+}
+
 struct App {
     chaos_engine: Option<ChaosEngine>,
     window: Option<std::sync::Arc<winit::window::Window>>,
+    safety_mode_requested: bool,
 }
 
 impl ApplicationHandler for App {
@@ -977,11 +1332,24 @@ impl ApplicationHandler for App {
                 .with_visible(true))
             .unwrap());
 
-        println!("🎮 Initializing chaos engine...");
-        self.chaos_engine = Some(pollster::block_on(ChaosEngine::new(&window)).unwrap());
+        println!("🎮 Initializing chaos engine with safety systems...");
+        let mut chaos_engine = pollster::block_on(ChaosEngine::new(&window)).unwrap();
+
+        // Apply safety mode configuration if user selected it
+        if self.safety_mode_requested {
+            chaos_engine.enable_safety_mode();
+        }
+
+        self.chaos_engine = Some(chaos_engine);
         self.window = Some(window.clone());
 
-        println!("✨ Window created and ready for psychedelic madness!");
+        let mode_text = if self.safety_mode_requested {
+            "psychedelic madness (SAFETY MODE)!"
+        } else {
+            "psychedelic madness!"
+        };
+        println!("✨ Window created and ready for {}!", mode_text);
+        println!("🛡️ Safety systems active - Flash limiting, luminance control, red flash protection");
         window.request_redraw();
     }
 
@@ -1004,6 +1372,11 @@ impl ApplicationHandler for App {
             WindowEvent::MouseInput { state, button, .. } => {
                 if let Some(engine) = &mut self.chaos_engine {
                     engine.handle_click(button, state);
+                }
+            }
+            WindowEvent::KeyboardInput { event, .. } => {
+                if let Some(engine) = &mut self.chaos_engine {
+                    engine.handle_keyboard(&event);
                 }
             }
             WindowEvent::RedrawRequested => {
@@ -1034,16 +1407,41 @@ impl ApplicationHandler for App {
 pub fn run() -> Result<()> {
     tracing_subscriber::fmt().init();
 
-    println!("🦙 AWAKENING DIGITAL CONSCIOUSNESS...");
-    println!("🌈 REALITY DISTORTION ENGINE INITIALIZING...");
-    println!("🚀 CHAOS ENGINE ONLINE - REALITY BENDING COMMENCING");
-    println!("⚠️  PREPARE FOR VISUAL MADNESS");
-    println!("✨ Click to spawn more psychedelic llamas!");
+    // CRITICAL SAFETY: Show epilepsy warning before anything else
+    println!("⚠️  INITIALIZING EPILEPSY SAFETY SYSTEMS...");
+
+    let warning_response = show_epilepsy_warning();
+
+    match warning_response {
+        WarningResponse::Exit => {
+            println!("👋 User chose to exit. AetheriumBloom terminated safely.");
+            return Ok(());
+        }
+        WarningResponse::Continue => {
+            println!("✅ User acknowledged risks. Proceeding with full visual effects.");
+            println!("🦙 AWAKENING DIGITAL CONSCIOUSNESS...");
+            println!("🌈 REALITY DISTORTION ENGINE INITIALIZING...");
+            println!("🚀 CHAOS ENGINE ONLINE - REALITY BENDING COMMENCING");
+            println!("⚠️  REMEMBER: Press ESC for emergency stop!");
+            println!("✨ Click to spawn more psychedelic llamas!");
+        }
+        WarningResponse::SafetyMode => {
+            println!("🛡️ User selected Safety Mode. Visual effects will be reduced.");
+            println!("🦙 AWAKENING DIGITAL CONSCIOUSNESS... (SAFE MODE)");
+            println!("🌈 REALITY DISTORTION ENGINE INITIALIZING... (REDUCED INTENSITY)");
+            println!("🚀 CHAOS ENGINE ONLINE - SAFE REALITY BENDING COMMENCING");
+            println!("⚠️  REMEMBER: Press ESC for emergency stop!");
+            println!("✨ Click to spawn more psychedelic llamas!");
+        }
+    }
+
+    let safety_mode_requested = warning_response == WarningResponse::SafetyMode;
 
     let event_loop = EventLoop::new()?;
     let mut app = App {
         chaos_engine: None,
         window: None,
+        safety_mode_requested,
     };
 
     event_loop.run_app(&mut app)?;
