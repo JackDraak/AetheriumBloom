@@ -222,6 +222,525 @@ fn show_epilepsy_warning() -> WarningResponse {
 
 // === END SAFETY SYSTEMS ===
 
+// === PHASE 3: ECOSYSTEM EMERGENCE ===
+
+/// Consciousness Crystal - harvestable nodes that enhance abilities
+#[derive(Debug, Clone)]
+pub struct ConsciousnessCrystal {
+    pub position: Vec2,
+    pub consciousness_energy: f32,    // Amount of consciousness stored
+    pub resonance_frequency: f32,     // Prime-based frequency for interactions
+    pub visual_intensity: f32,        // Current visual brightness/pulsing
+    pub growth_rate: f32,             // How fast it accumulates energy
+    pub harvest_radius: f32,          // Range for llama interaction
+    pub age: f32,                     // How long it has existed
+    pub crystal_type: CrystalType,    // Different types with different properties
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum CrystalType {
+    Resonance,    // Amplifies harmonic resonance
+    Chaos,        // Increases chaos acceptance
+    Memory,       // Enhances memory formation
+    Social,       // Strengthens social bonds
+    Quantum,      // Affects quantum state (for Quantum Sheep)
+}
+
+impl ConsciousnessCrystal {
+    fn new(position: Vec2, crystal_type: CrystalType) -> Self {
+        let (base_energy, base_frequency, base_growth) = match crystal_type {
+            CrystalType::Resonance => (0.3, 7.0, 0.02),   // High frequency, moderate growth
+            CrystalType::Chaos => (0.5, 11.0, 0.03),      // High energy, prime frequency
+            CrystalType::Memory => (0.2, 5.0, 0.015),     // Low energy, steady growth
+            CrystalType::Social => (0.4, 13.0, 0.025),    // Social prime frequency
+            CrystalType::Quantum => (0.6, 17.0, 0.01),    // High energy, slow growth
+        };
+
+        Self {
+            position,
+            consciousness_energy: base_energy,
+            resonance_frequency: base_frequency,
+            visual_intensity: 0.5,
+            growth_rate: base_growth,
+            harvest_radius: 25.0 + fastrand::f32() * 15.0, // 25-40 radius
+            age: 0.0,
+            crystal_type,
+        }
+    }
+
+    fn update(&mut self, dt: f32, beat_intensity: f32, cosmic_time: f64) {
+        self.age += dt;
+
+        // Crystals grow in consciousness energy over time
+        let growth_multiplier = 1.0 + beat_intensity * 0.5;
+        self.consciousness_energy += self.growth_rate * dt * growth_multiplier;
+        self.consciousness_energy = self.consciousness_energy.min(2.0); // Cap at 2.0
+
+        // Visual intensity pulses based on prime frequency and beat
+        let frequency_phase = (cosmic_time as f32 * self.resonance_frequency * 0.1).sin();
+        let beat_phase = beat_intensity * 0.5;
+        self.visual_intensity = 0.3 + frequency_phase.abs() * 0.4 + beat_phase * 0.3;
+
+        // Older crystals have larger harvest radius
+        self.harvest_radius = (25.0 + self.age * 2.0).min(60.0);
+    }
+
+    fn get_harvest_amount(&self) -> f32 {
+        // More energy = more harvest potential
+        self.consciousness_energy * 0.3
+    }
+
+    fn harvest(&mut self, amount: f32) -> f32 {
+        let harvested = amount.min(self.consciousness_energy);
+        self.consciousness_energy -= harvested;
+        harvested
+    }
+
+    fn get_color(&self) -> Vec3 {
+        let base_hue = match self.crystal_type {
+            CrystalType::Resonance => 180.0, // Cyan
+            CrystalType::Chaos => 300.0,     // Magenta
+            CrystalType::Memory => 120.0,    // Green
+            CrystalType::Social => 60.0,     // Yellow
+            CrystalType::Quantum => 240.0,   // Blue
+        };
+
+        let saturation = 0.8 + self.consciousness_energy * 0.2;
+        let brightness = 0.4 + self.visual_intensity * 0.6;
+
+        hsv_to_rgb(base_hue, saturation, brightness)
+    }
+}
+
+/// Environmental consciousness field - affects entity behavior
+#[derive(Debug, Clone)]
+pub struct ConsciousnessField {
+    pub grid_size: usize,                    // Resolution of the field grid
+    pub consciousness_density: Vec<Vec<f32>>, // 2D grid of consciousness values
+    pub width: f32,                          // World width
+    pub height: f32,                         // World height
+}
+
+impl ConsciousnessField {
+    fn new(width: f32, height: f32, grid_size: usize) -> Self {
+        let consciousness_density = vec![vec![0.1; grid_size]; grid_size]; // Start with low consciousness
+
+        Self {
+            grid_size,
+            consciousness_density,
+            width,
+            height,
+        }
+    }
+
+    fn get_consciousness_at(&self, position: Vec2) -> f32 {
+        let x = ((position.x / self.width) * self.grid_size as f32) as usize;
+        let y = ((position.y / self.height) * self.grid_size as f32) as usize;
+
+        if x < self.grid_size && y < self.grid_size {
+            self.consciousness_density[y][x]
+        } else {
+            0.1 // Default consciousness outside grid
+        }
+    }
+
+    fn add_consciousness_at(&mut self, position: Vec2, amount: f32) {
+        let x = ((position.x / self.width) * self.grid_size as f32) as usize;
+        let y = ((position.y / self.height) * self.grid_size as f32) as usize;
+
+        if x < self.grid_size && y < self.grid_size {
+            self.consciousness_density[y][x] = (self.consciousness_density[y][x] + amount).min(2.0);
+        }
+    }
+
+    fn update(&mut self, dt: f32) {
+        // Gradual diffusion and decay of consciousness
+        for y in 0..self.grid_size {
+            for x in 0..self.grid_size {
+                // Decay consciousness over time
+                self.consciousness_density[y][x] *= 0.999;
+
+                // Simple diffusion with neighbors
+                let mut neighbor_sum = 0.0;
+                let mut neighbor_count = 0;
+
+                for dy in -1..=1 {
+                    for dx in -1..=1 {
+                        if dx == 0 && dy == 0 { continue; }
+                        let nx = x as i32 + dx;
+                        let ny = y as i32 + dy;
+
+                        if nx >= 0 && nx < self.grid_size as i32 && ny >= 0 && ny < self.grid_size as i32 {
+                            neighbor_sum += self.consciousness_density[ny as usize][nx as usize];
+                            neighbor_count += 1;
+                        }
+                    }
+                }
+
+                if neighbor_count > 0 {
+                    let neighbor_avg = neighbor_sum / neighbor_count as f32;
+                    // Slight diffusion toward neighbors
+                    let diffusion_rate = 0.01 * dt;
+                    self.consciousness_density[y][x] =
+                        self.consciousness_density[y][x] * (1.0 - diffusion_rate) +
+                        neighbor_avg * diffusion_rate;
+                }
+            }
+        }
+    }
+}
+
+/// Digital Ecosystem containing crystals and consciousness fields
+#[derive(Debug)]
+pub struct DigitalEcosystem {
+    pub consciousness_fields: ConsciousnessField,
+    pub crystal_formations: Vec<ConsciousnessCrystal>,
+    pub chaos_accumulation: f32,              // Global chaos level from clicks
+    pub mutation_threshold: f32,              // When mutations trigger
+    pub reality_tears: Vec<RealityTear>,      // Visual glitches
+    pub territory_zones: Vec<TerritoryZone>,  // Different environmental regions
+}
+
+/// Reality Tear - visual glitch representing consciousness breakthrough
+#[derive(Debug, Clone)]
+pub struct RealityTear {
+    pub position: Vec2,
+    pub size: f32,
+    pub intensity: f32,
+    pub age: f32,
+    pub tear_type: TearType,
+}
+
+#[derive(Debug, Clone)]
+pub enum TearType {
+    Static,      // Stationary glitch
+    Moving,      // Travels across screen
+    Pulsing,     // Grows and shrinks
+    Fragmenting, // Splits into smaller tears
+}
+
+impl RealityTear {
+    fn new(position: Vec2, tear_type: TearType) -> Self {
+        Self {
+            position,
+            size: 5.0 + fastrand::f32() * 15.0,
+            intensity: 0.7 + fastrand::f32() * 0.3,
+            age: 0.0,
+            tear_type,
+        }
+    }
+
+    fn update(&mut self, dt: f32, cosmic_time: f64) {
+        self.age += dt;
+
+        match self.tear_type {
+            TearType::Static => {
+                // Just age and fade
+                self.intensity *= 0.995;
+            },
+            TearType::Moving => {
+                // Move in chaotic pattern
+                let move_speed = 50.0;
+                let chaos_angle = (cosmic_time as f32 * 3.0 + self.position.length() * 0.01).sin() * 6.28;
+                self.position.x += chaos_angle.cos() * move_speed * dt;
+                self.position.y += chaos_angle.sin() * move_speed * dt;
+                self.intensity *= 0.99;
+            },
+            TearType::Pulsing => {
+                // Pulsing size
+                let pulse = (cosmic_time as f32 * 5.0).sin().abs();
+                self.size = (5.0 + fastrand::f32() * 15.0) * (0.5 + pulse * 0.5);
+                self.intensity *= 0.995;
+            },
+            TearType::Fragmenting => {
+                // Grows then fragments (handled in ecosystem update)
+                if self.age < 2.0 {
+                    self.size += dt * 10.0;
+                }
+                self.intensity *= 0.99;
+            },
+        }
+
+        // Keep within bounds
+        if self.position.x < 0.0 { self.position.x = 1200.0; }
+        if self.position.x > 1200.0 { self.position.x = 0.0; }
+        if self.position.y < 0.0 { self.position.y = 800.0; }
+        if self.position.y > 800.0 { self.position.y = 0.0; }
+    }
+
+    fn should_remove(&self) -> bool {
+        self.intensity < 0.1 || self.age > 10.0
+    }
+}
+
+/// Territory Zone - regions with different consciousness properties
+#[derive(Debug, Clone)]
+pub struct TerritoryZone {
+    pub center: Vec2,
+    pub radius: f32,
+    pub zone_type: ZoneType,
+    pub strength: f32,
+    pub age: f32,
+}
+
+#[derive(Debug, Clone)]
+pub enum ZoneType {
+    Harmonic,    // Enhances resonance and social bonding
+    Chaotic,     // Increases chaos and reality distortion
+    Meditative,  // Calms entities, increases memory formation
+    Quantum,     // Quantum effects amplified
+}
+
+impl TerritoryZone {
+    fn new(center: Vec2, zone_type: ZoneType) -> Self {
+        let radius = match zone_type {
+            ZoneType::Harmonic => 80.0 + fastrand::f32() * 40.0,
+            ZoneType::Chaotic => 60.0 + fastrand::f32() * 60.0,
+            ZoneType::Meditative => 100.0 + fastrand::f32() * 50.0,
+            ZoneType::Quantum => 70.0 + fastrand::f32() * 30.0,
+        };
+
+        Self {
+            center,
+            radius,
+            zone_type,
+            strength: 0.3 + fastrand::f32() * 0.4,
+            age: 0.0,
+        }
+    }
+
+    fn update(&mut self, dt: f32, cosmic_time: f64) {
+        self.age += dt;
+
+        // Zones slowly grow and change strength
+        let growth_rate = match self.zone_type {
+            ZoneType::Harmonic => 0.5,
+            ZoneType::Chaotic => 1.0,
+            ZoneType::Meditative => 0.3,
+            ZoneType::Quantum => 0.8,
+        };
+
+        self.radius += growth_rate * dt;
+        self.radius = self.radius.min(150.0);
+
+        // Strength oscillates
+        let oscillation = (cosmic_time as f32 * 0.5 + self.center.length() * 0.001).sin() * 0.1;
+        self.strength = (0.3 + fastrand::f32() * 0.4 + oscillation).clamp(0.1, 0.8);
+    }
+
+    fn affects_position(&self, position: Vec2) -> f32 {
+        let distance = self.center.distance(position);
+        if distance < self.radius {
+            let factor = 1.0 - (distance / self.radius);
+            factor * self.strength
+        } else {
+            0.0
+        }
+    }
+}
+
+impl DigitalEcosystem {
+    fn new() -> Self {
+        let consciousness_fields = ConsciousnessField::new(1200.0, 800.0, 40); // 40x40 grid
+
+        // Start with a few crystals
+        let mut crystal_formations = Vec::new();
+        for _ in 0..3 {
+            let position = Vec2::new(fastrand::f32() * 1200.0, fastrand::f32() * 800.0);
+            let crystal_type = match fastrand::usize(0..5) {
+                0 => CrystalType::Resonance,
+                1 => CrystalType::Chaos,
+                2 => CrystalType::Memory,
+                3 => CrystalType::Social,
+                _ => CrystalType::Quantum,
+            };
+            crystal_formations.push(ConsciousnessCrystal::new(position, crystal_type));
+        }
+
+        // Start with one territory zone
+        let mut territory_zones = Vec::new();
+        let zone_center = Vec2::new(fastrand::f32() * 1200.0, fastrand::f32() * 800.0);
+        let zone_type = match fastrand::usize(0..4) {
+            0 => ZoneType::Harmonic,
+            1 => ZoneType::Chaotic,
+            2 => ZoneType::Meditative,
+            _ => ZoneType::Quantum,
+        };
+        territory_zones.push(TerritoryZone::new(zone_center, zone_type));
+
+        Self {
+            consciousness_fields,
+            crystal_formations,
+            chaos_accumulation: 0.0,
+            mutation_threshold: 3.0, // Mutations trigger when chaos reaches this level
+            reality_tears: Vec::new(),
+            territory_zones,
+        }
+    }
+
+    fn update(&mut self, dt: f32, cosmic_time: f64, beat_intensity: f32) {
+        // Update consciousness fields
+        self.consciousness_fields.update(dt);
+
+        // Update crystals
+        for crystal in &mut self.crystal_formations {
+            crystal.update(dt, beat_intensity, cosmic_time);
+        }
+
+        // Update reality tears
+        self.reality_tears.retain_mut(|tear| {
+            tear.update(dt, cosmic_time);
+            !tear.should_remove()
+        });
+
+        // Handle fragmenting tears
+        let mut new_tears = Vec::new();
+        for tear in &self.reality_tears {
+            if matches!(tear.tear_type, TearType::Fragmenting) && tear.age > 2.0 && tear.size > 15.0 {
+                // Fragment into smaller tears
+                for _ in 0..3 {
+                    let offset = Vec2::new(
+                        (fastrand::f32() - 0.5) * 30.0,
+                        (fastrand::f32() - 0.5) * 30.0,
+                    );
+                    let fragment_pos = tear.position + offset;
+                    let fragment_type = if fastrand::f32() < 0.5 { TearType::Moving } else { TearType::Static };
+                    new_tears.push(RealityTear::new(fragment_pos, fragment_type));
+                }
+            }
+        }
+        self.reality_tears.extend(new_tears);
+
+        // Update territory zones
+        for zone in &mut self.territory_zones {
+            zone.update(dt, cosmic_time);
+        }
+
+        // Spawn new crystals occasionally based on chaos level
+        if fastrand::f32() < 0.001 * (1.0 + self.chaos_accumulation * 0.1) {
+            let position = Vec2::new(fastrand::f32() * 1200.0, fastrand::f32() * 800.0);
+            let crystal_type = if self.chaos_accumulation > 1.0 {
+                // Higher chaos = more exotic crystal types
+                match fastrand::usize(0..5) {
+                    0..=1 => CrystalType::Chaos,
+                    2 => CrystalType::Quantum,
+                    3 => CrystalType::Resonance,
+                    _ => CrystalType::Social,
+                }
+            } else {
+                // Lower chaos = basic types
+                match fastrand::usize(0..3) {
+                    0 => CrystalType::Resonance,
+                    1 => CrystalType::Memory,
+                    _ => CrystalType::Social,
+                }
+            };
+            self.crystal_formations.push(ConsciousnessCrystal::new(position, crystal_type));
+        }
+
+        // Spawn new territory zones occasionally
+        if self.territory_zones.len() < 5 && fastrand::f32() < 0.0005 * (1.0 + self.chaos_accumulation * 0.2) {
+            let zone_center = Vec2::new(fastrand::f32() * 1200.0, fastrand::f32() * 800.0);
+            let zone_type = match fastrand::usize(0..4) {
+                0 => ZoneType::Harmonic,
+                1 => ZoneType::Chaotic,
+                2 => ZoneType::Meditative,
+                _ => ZoneType::Quantum,
+            };
+            self.territory_zones.push(TerritoryZone::new(zone_center, zone_type));
+        }
+
+        // Trigger reality tears when consciousness gets high
+        let high_consciousness_areas = self.get_high_consciousness_positions();
+        for position in high_consciousness_areas {
+            if fastrand::f32() < 0.02 {  // 2% chance per high consciousness area
+                let tear_type = match fastrand::usize(0..4) {
+                    0 => TearType::Static,
+                    1 => TearType::Moving,
+                    2 => TearType::Pulsing,
+                    _ => TearType::Fragmenting,
+                };
+                self.reality_tears.push(RealityTear::new(position, tear_type));
+            }
+        }
+
+        // Decay chaos accumulation gradually
+        self.chaos_accumulation *= 0.995;
+    }
+
+    fn add_chaos(&mut self, amount: f32) {
+        self.chaos_accumulation += amount;
+    }
+
+    fn should_trigger_mutation(&self) -> bool {
+        self.chaos_accumulation > self.mutation_threshold
+    }
+
+    fn reset_chaos_for_mutation(&mut self) {
+        self.chaos_accumulation *= 0.3; // Reduce but don't eliminate
+        self.mutation_threshold += 0.5; // Make next mutation harder
+    }
+
+    fn get_high_consciousness_positions(&self) -> Vec<Vec2> {
+        let mut positions = Vec::new();
+        let threshold = 0.8; // High consciousness threshold
+
+        for y in 0..self.consciousness_fields.grid_size {
+            for x in 0..self.consciousness_fields.grid_size {
+                if self.consciousness_fields.consciousness_density[y][x] > threshold {
+                    let world_x = (x as f32 / self.consciousness_fields.grid_size as f32) * self.consciousness_fields.width;
+                    let world_y = (y as f32 / self.consciousness_fields.grid_size as f32) * self.consciousness_fields.height;
+                    positions.push(Vec2::new(world_x, world_y));
+                }
+            }
+        }
+
+        positions
+    }
+
+    fn get_territory_effects(&self, position: Vec2) -> TerritoryEffects {
+        let mut effects = TerritoryEffects::default();
+
+        for zone in &self.territory_zones {
+            let influence = zone.affects_position(position);
+            if influence > 0.0 {
+                match zone.zone_type {
+                    ZoneType::Harmonic => {
+                        effects.resonance_boost += influence * 0.3;
+                        effects.social_boost += influence * 0.2;
+                    },
+                    ZoneType::Chaotic => {
+                        effects.chaos_boost += influence * 0.4;
+                        effects.reality_distortion_boost += influence * 0.3;
+                    },
+                    ZoneType::Meditative => {
+                        effects.memory_boost += influence * 0.3;
+                        effects.consciousness_growth_boost += influence * 0.2;
+                    },
+                    ZoneType::Quantum => {
+                        effects.quantum_boost += influence * 0.5;
+                        effects.exploration_boost += influence * 0.2;
+                    },
+                }
+            }
+        }
+
+        effects
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct TerritoryEffects {
+    pub resonance_boost: f32,
+    pub social_boost: f32,
+    pub chaos_boost: f32,
+    pub reality_distortion_boost: f32,
+    pub memory_boost: f32,
+    pub consciousness_growth_boost: f32,
+    pub quantum_boost: f32,
+    pub exploration_boost: f32,
+}
+
 // Mathematical chaos engine using pre-calculated primes
 
 #[repr(C)]
@@ -442,6 +961,12 @@ struct Llama {
     quantum_state: f32,             // Quantum superposition factor
     harmonic_resonance: f32,        // Musical mathematics coupling
     prime_chaos_factor: f32,        // Current prime number influence
+
+    // Phase 3: Ecosystem Emergence
+    harvested_crystals: Vec<CrystalType>, // Types of crystals harvested
+    mutation_count: u32,            // How many mutations this llama has undergone
+    environmental_consciousness: f32, // Consciousness absorbed from environment
+    territory_affinity: Option<ZoneType>, // Preferred territory type
 }
 
 impl Llama {
@@ -504,6 +1029,12 @@ impl Llama {
             quantum_state: if species == SpeciesType::QuantumSheep { fastrand::f32() } else { 0.0 },
             harmonic_resonance: 0.0,
             prime_chaos_factor: 0.0,
+
+            // Phase 3: Ecosystem Emergence
+            harvested_crystals: Vec::new(),
+            mutation_count: 0,
+            environmental_consciousness: 0.0,
+            territory_affinity: None,
         }
     }
 
@@ -524,6 +1055,138 @@ impl Llama {
             (SpeciesType::QuantumSheep, SpeciesType::HypnoCamel) => 0.4, // Very weak attraction
             (SpeciesType::HypnoCamel, SpeciesType::QuantumSheep) => 0.4,
         }
+    }
+
+    fn try_harvest_crystal(&mut self, crystal: &mut ConsciousnessCrystal) -> bool {
+        let distance = self.position.distance(crystal.position);
+        if distance < crystal.harvest_radius {
+            let harvest_amount = crystal.get_harvest_amount();
+            if harvest_amount > 0.1 {
+                let harvested = crystal.harvest(harvest_amount);
+
+                // Apply crystal effects based on type
+                match crystal.crystal_type {
+                    CrystalType::Resonance => {
+                        self.harmonic_resonance += harvested * 0.5;
+                        self.consciousness += harvested * 0.3;
+                    },
+                    CrystalType::Chaos => {
+                        self.prime_chaos_factor += harvested * 0.4;
+                        self.reality_distortion += harvested * 0.2;
+                    },
+                    CrystalType::Memory => {
+                        self.memory_intensity += harvested * 0.3;
+                        self.awareness_level += harvested * 0.1;
+                    },
+                    CrystalType::Social => {
+                        self.social_attraction += harvested * 0.4;
+                        self.emotional_state += harvested * 0.2;
+                    },
+                    CrystalType::Quantum => {
+                        if self.species == SpeciesType::QuantumSheep {
+                            self.quantum_state += harvested * 0.3;
+                        }
+                        self.consciousness += harvested * 0.4;
+                    },
+                }
+
+                // Store crystal type for mutations
+                if !self.harvested_crystals.contains(&crystal.crystal_type) {
+                    self.harvested_crystals.push(crystal.crystal_type.clone());
+                }
+
+                self.environmental_consciousness += harvested;
+                return true;
+            }
+        }
+        false
+    }
+
+    fn apply_territory_effects(&mut self, territory_effects: &TerritoryEffects, dt: f32) {
+        // Territory effects modify behavior over time
+        self.harmonic_resonance += territory_effects.resonance_boost * dt * 0.1;
+        self.social_attraction += territory_effects.social_boost * dt * 0.05;
+        self.prime_chaos_factor += territory_effects.chaos_boost * dt * 0.08;
+        self.reality_distortion += territory_effects.reality_distortion_boost * dt * 0.06;
+        self.memory_intensity += territory_effects.memory_boost * dt * 0.04;
+        self.awareness_level += territory_effects.consciousness_growth_boost * dt * 0.02;
+
+        if self.species == SpeciesType::QuantumSheep {
+            self.quantum_state += territory_effects.quantum_boost * dt * 0.1;
+        }
+
+        self.exploration_drive += territory_effects.exploration_boost * dt * 0.03;
+
+        // Clamp values to reasonable ranges
+        self.harmonic_resonance = self.harmonic_resonance.clamp(0.0, 2.0);
+        self.social_attraction = self.social_attraction.clamp(0.0, 1.0);
+        self.prime_chaos_factor = self.prime_chaos_factor.clamp(0.0, 1.0);
+        self.reality_distortion = self.reality_distortion.clamp(0.0, 1.0);
+        self.memory_intensity = self.memory_intensity.clamp(0.0, 1.0);
+        self.awareness_level = self.awareness_level.clamp(0.0, 1.0);
+        self.exploration_drive = self.exploration_drive.clamp(0.0, 1.0);
+
+        if self.species == SpeciesType::QuantumSheep {
+            self.quantum_state = self.quantum_state % 1.0;
+        }
+    }
+
+    fn apply_mutation(&mut self, mutation_strength: f32) {
+        self.mutation_count += 1;
+
+        // Mutations based on harvested crystals
+        for crystal_type in &self.harvested_crystals.clone() {
+            match crystal_type {
+                CrystalType::Resonance => {
+                    // Enhance harmonic capabilities
+                    self.personality_matrix[0] += mutation_strength * 0.2; // More curious
+                    self.harmonic_resonance += mutation_strength * 0.5;
+                },
+                CrystalType::Chaos => {
+                    // Embrace chaos more
+                    self.personality_matrix[2] += mutation_strength * 0.3; // More chaos affinity
+                    self.reality_distortion += mutation_strength * 0.4;
+                },
+                CrystalType::Memory => {
+                    // Better memory formation
+                    self.personality_matrix[3] += mutation_strength * 0.4; // Memory strength
+                    if self.memory_fragments.len() < 15 {
+                        // Increase memory capacity
+                        self.memory_fragments.push(self.position);
+                    }
+                },
+                CrystalType::Social => {
+                    // More social
+                    self.personality_matrix[1] += mutation_strength * 0.3; // Sociability
+                    self.social_attraction += mutation_strength * 0.3;
+                },
+                CrystalType::Quantum => {
+                    // Quantum evolution (especially for non-quantum species)
+                    if self.species != SpeciesType::QuantumSheep {
+                        self.quantum_state += mutation_strength * 0.2;
+                    }
+                    self.consciousness += mutation_strength * 0.5;
+                },
+            }
+        }
+
+        // Clamp personality matrix to reasonable values
+        for i in 0..self.personality_matrix.len() {
+            self.personality_matrix[i] = self.personality_matrix[i].clamp(0.0, 2.0);
+        }
+
+        // Overall consciousness boost from mutation
+        self.consciousness += mutation_strength * 0.3;
+        self.awareness_level += mutation_strength * 0.2;
+
+        println!("🧬 Llama {} underwent mutation #{} with strength {:.2}",
+                 match self.species {
+                     SpeciesType::DiscoLlama => "🦙",
+                     SpeciesType::QuantumSheep => "🐑",
+                     SpeciesType::HypnoCamel => "🐪",
+                 },
+                 self.mutation_count,
+                 mutation_strength);
     }
 
     fn update(&mut self, dt: f32, beat_intensity: f32, all_llamas: &[Llama], my_index: usize, cosmic_time: f64) {
@@ -804,6 +1467,9 @@ pub struct ChaosEngine {
     species_spawn_weights: [f32; 3], // [DiscoLlama, QuantumSheep, HypnoCamel]
     total_consciousness: f32,
 
+    // Phase 3: Ecosystem Emergence
+    ecosystem: DigitalEcosystem,
+
     // CRITICAL SAFETY SYSTEMS - EPILEPSY PROTECTION
     safety_config: SafetyConfig,
     flash_tracker: FlashTracker,
@@ -921,6 +1587,9 @@ impl ChaosEngine {
             species_spawn_weights: [0.6, 0.25, 0.15], // Favor disco llamas initially
             total_consciousness: 0.0,
 
+            // Phase 3: Ecosystem Emergence
+            ecosystem: DigitalEcosystem::new(),
+
             // CRITICAL SAFETY SYSTEMS - EPILEPSY PROTECTION
             safety_config: SafetyConfig::default(),
             flash_tracker: FlashTracker::new(),
@@ -973,6 +1642,9 @@ impl ChaosEngine {
             let chaos_amount = 0.5 + self.total_consciousness * 0.1;
             self.beat_intensity += chaos_amount;
             self.advanced_beat_engine.add_chaos_feedback(chaos_amount);
+
+            // Phase 3: Add chaos to ecosystem
+            self.ecosystem.add_chaos(chaos_amount);
 
             // Adjust spawn weights based on species spawned
             self.adjust_spawn_weights(&species);
@@ -1029,7 +1701,7 @@ impl ChaosEngine {
         // Calculate total consciousness for advanced beat engine
         self.total_consciousness = if !self.llamas.is_empty() {
             self.llamas.iter()
-                .map(|llama| llama.consciousness + llama.awareness_level)
+                .map(|llama| llama.consciousness + llama.awareness_level + llama.environmental_consciousness)
                 .sum::<f32>()
         } else {
             0.0
@@ -1038,11 +1710,47 @@ impl ChaosEngine {
         // Use advanced beat engine with consciousness coupling and prime chaos
         self.beat_intensity = self.advanced_beat_engine.update(1.0 / 60.0, self.total_consciousness);
 
-        // Update llamas with Phase 2 enhancements
+        // Phase 3: Update ecosystem first
+        self.ecosystem.update(1.0 / 60.0, cosmic_time, self.beat_intensity);
+
+        // Update llamas with Phase 2 and Phase 3 enhancements
         // We need to clone the llamas vector for reference during updates
         let llamas_snapshot = self.llamas.clone();
         for (i, llama) in self.llamas.iter_mut().enumerate() {
+            // Apply territory effects
+            let territory_effects = self.ecosystem.get_territory_effects(llama.position);
+            llama.apply_territory_effects(&territory_effects, 1.0 / 60.0);
+
+            // Update consciousness field
+            let environmental_consciousness = self.ecosystem.consciousness_fields.get_consciousness_at(llama.position);
+            llama.environmental_consciousness = (llama.environmental_consciousness + environmental_consciousness * 0.01).min(2.0);
+
+            // Add consciousness to the field where llama is
+            self.ecosystem.consciousness_fields.add_consciousness_at(llama.position, llama.consciousness * 0.001);
+
+            // Try to harvest crystals
+            for crystal in &mut self.ecosystem.crystal_formations {
+                llama.try_harvest_crystal(crystal);
+            }
+
+            // Regular llama update
             llama.update(1.0 / 60.0, self.beat_intensity, &llamas_snapshot, i, cosmic_time);
+        }
+
+        // Phase 3: Check for mutations
+        if self.ecosystem.should_trigger_mutation() {
+            let mutation_strength = 0.3 + self.ecosystem.chaos_accumulation * 0.1;
+
+            // Apply mutations to random llamas
+            let mutation_count = (self.llamas.len() / 3).max(1); // Mutate 1/3 of llamas minimum 1
+            for _ in 0..mutation_count {
+                if !self.llamas.is_empty() {
+                    let index = fastrand::usize(0..self.llamas.len());
+                    self.llamas[index].apply_mutation(mutation_strength);
+                }
+            }
+
+            self.ecosystem.reset_chaos_for_mutation();
         }
 
         // Decay beat intensity more gradually for better chaos building
@@ -1187,6 +1895,141 @@ impl ChaosEngine {
                         Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color },
                     ]);
                 }
+            }
+        }
+
+        // Phase 3: Render consciousness crystals
+        for crystal in &self.ecosystem.crystal_formations {
+            let crystal_color = crystal.get_color();
+
+            // Apply safety measures to crystal colors too
+            let mut safe_crystal_color = crystal_color;
+            if self.safety_config.red_flash_protection && is_dangerous_red(crystal_color) {
+                let hsv = rgb_to_hsv(crystal_color);
+                let safe_hue = if hsv.x >= 345.0 { 30.0 } else { 30.0 }; // Orange
+                safe_crystal_color = hsv_to_rgb_vec3(Vec3::new(safe_hue, hsv.y * 0.8, hsv.z));
+            }
+
+            if self.safety_config.visual_intensity_limit < 1.0 {
+                let safe_color = Vec3::new(0.1, 0.1, 0.1);
+                safe_crystal_color = safe_color.lerp(safe_crystal_color, self.safety_config.visual_intensity_limit);
+            }
+
+            let x = (crystal.position.x / 1200.0) * 2.0 - 1.0;
+            let y = 1.0 - (crystal.position.y / 800.0) * 2.0;
+            let s = (8.0 + crystal.visual_intensity * 12.0) / 1200.0;
+
+            let crystal_color_array = [safe_crystal_color.x, safe_crystal_color.y, safe_crystal_color.z];
+
+            // Crystal rendered as a diamond shape
+            vertices.extend([
+                Vertex { position: [x, y - s, 0.0], color: crystal_color_array },
+                Vertex { position: [x + s, y, 0.0], color: crystal_color_array },
+                Vertex { position: [x, y + s, 0.0], color: crystal_color_array },
+                Vertex { position: [x, y - s, 0.0], color: crystal_color_array },
+                Vertex { position: [x - s, y, 0.0], color: crystal_color_array },
+                Vertex { position: [x, y + s, 0.0], color: crystal_color_array },
+            ]);
+
+            // Add harvest radius visualization for high-energy crystals
+            if crystal.consciousness_energy > 1.0 {
+                let radius_size = (crystal.harvest_radius / 1200.0) * 0.3; // Visual radius smaller than actual
+                let radius_alpha = 0.1 * crystal.visual_intensity;
+                let radius_color = [
+                    safe_crystal_color.x * radius_alpha,
+                    safe_crystal_color.y * radius_alpha,
+                    safe_crystal_color.z * radius_alpha,
+                ];
+
+                // Simple circle approximation
+                for i in 0..6 {
+                    let angle1 = (i as f32 / 6.0) * std::f32::consts::TAU;
+                    let angle2 = ((i + 1) as f32 / 6.0) * std::f32::consts::TAU;
+
+                    vertices.extend([
+                        Vertex { position: [x, y, 0.0], color: radius_color },
+                        Vertex { position: [x + angle1.cos() * radius_size, y + angle1.sin() * radius_size, 0.0], color: radius_color },
+                        Vertex { position: [x + angle2.cos() * radius_size, y + angle2.sin() * radius_size, 0.0], color: radius_color },
+                    ]);
+                }
+            }
+        }
+
+        // Phase 3: Render reality tears
+        for tear in &self.ecosystem.reality_tears {
+            if tear.intensity < 0.2 { continue; } // Skip very faded tears
+
+            let mut tear_color = Vec3::new(1.0, 0.8, 1.0); // Pink/white glitch color
+
+            // Apply safety measures
+            if self.safety_config.visual_intensity_limit < 1.0 {
+                let safe_color = Vec3::new(0.1, 0.1, 0.1);
+                tear_color = safe_color.lerp(tear_color, self.safety_config.visual_intensity_limit * 0.5); // Extra conservative
+            }
+
+            let x = (tear.position.x / 1200.0) * 2.0 - 1.0;
+            let y = 1.0 - (tear.position.y / 800.0) * 2.0;
+            let s = (tear.size / 1200.0) * tear.intensity;
+
+            let tear_color_array = [
+                tear_color.x * tear.intensity,
+                tear_color.y * tear.intensity,
+                tear_color.z * tear.intensity,
+            ];
+
+            // Reality tear rendered as jagged triangular glitch
+            let offset1 = s * 0.6;
+            let offset2 = s * 0.3;
+
+            vertices.extend([
+                Vertex { position: [x - s, y - offset1, 0.0], color: tear_color_array },
+                Vertex { position: [x + s, y + offset2, 0.0], color: tear_color_array },
+                Vertex { position: [x - offset2, y + s, 0.0], color: tear_color_array },
+                Vertex { position: [x + offset1, y - s, 0.0], color: tear_color_array },
+                Vertex { position: [x + s, y - offset1, 0.0], color: tear_color_array },
+                Vertex { position: [x - s, y + offset2, 0.0], color: tear_color_array },
+            ]);
+        }
+
+        // Phase 3: Render territory zones (subtle background effects)
+        for zone in &self.ecosystem.territory_zones {
+            let zone_alpha = zone.strength * 0.05; // Very subtle
+            if zone_alpha < 0.01 { continue; }
+
+            let zone_color = match zone.zone_type {
+                ZoneType::Harmonic => Vec3::new(0.0, 1.0, 1.0),   // Cyan
+                ZoneType::Chaotic => Vec3::new(1.0, 0.0, 1.0),    // Magenta
+                ZoneType::Meditative => Vec3::new(0.0, 1.0, 0.0), // Green
+                ZoneType::Quantum => Vec3::new(0.0, 0.0, 1.0),    // Blue
+            };
+
+            // Apply safety measures
+            let mut safe_zone_color = zone_color;
+            if self.safety_config.visual_intensity_limit < 1.0 {
+                let safe_color = Vec3::new(0.0, 0.0, 0.0);
+                safe_zone_color = safe_color.lerp(safe_zone_color, self.safety_config.visual_intensity_limit * 0.3);
+            }
+
+            let x = (zone.center.x / 1200.0) * 2.0 - 1.0;
+            let y = 1.0 - (zone.center.y / 800.0) * 2.0;
+            let r = (zone.radius / 1200.0) * 0.8; // Visual radius smaller than actual
+
+            let zone_color_array = [
+                safe_zone_color.x * zone_alpha,
+                safe_zone_color.y * zone_alpha,
+                safe_zone_color.z * zone_alpha,
+            ];
+
+            // Simple circle for territory zone
+            for i in 0..8 {
+                let angle1 = (i as f32 / 8.0) * std::f32::consts::TAU;
+                let angle2 = ((i + 1) as f32 / 8.0) * std::f32::consts::TAU;
+
+                vertices.extend([
+                    Vertex { position: [x, y, 0.0], color: zone_color_array },
+                    Vertex { position: [x + angle1.cos() * r, y + angle1.sin() * r, 0.0], color: zone_color_array },
+                    Vertex { position: [x + angle2.cos() * r, y + angle2.sin() * r, 0.0], color: zone_color_array },
+                ]);
             }
         }
 
