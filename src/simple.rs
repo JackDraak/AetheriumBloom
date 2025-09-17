@@ -319,17 +319,25 @@ fn hsv_to_rgb(h: f32, s: f32, v: f32) -> glam::Vec3 {
 
 struct App {
     chaos_engine: Option<ChaosEngine>,
+    window: Option<std::sync::Arc<winit::window::Window>>,
 }
 
 impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
-        let window = event_loop
+        println!("🪟 Creating window...");
+        let window = std::sync::Arc::new(event_loop
             .create_window(winit::window::WindowAttributes::default()
                 .with_title("🦙 AETHERIUM BLOOM - Psychedelic Digital Organism 🌈")
-                .with_inner_size(winit::dpi::LogicalSize::new(1200.0, 800.0)))
-            .unwrap();
+                .with_inner_size(winit::dpi::LogicalSize::new(1200.0, 800.0))
+                .with_visible(true))
+            .unwrap());
 
+        println!("🎮 Initializing chaos engine...");
         self.chaos_engine = Some(pollster::block_on(ChaosEngine::new(&window)).unwrap());
+        self.window = Some(window.clone());
+
+        println!("✨ Window created and ready for psychedelic madness!");
+        window.request_redraw();
     }
 
     fn window_event(
@@ -372,8 +380,8 @@ impl ApplicationHandler for App {
 
     fn about_to_wait(&mut self, _event_loop: &winit::event_loop::ActiveEventLoop) {
         // Continuously request redraws for smooth animation
-        if let Some(_) = &self.chaos_engine {
-            // Request redraw through the window when we have access to it
+        if let Some(window) = &self.window {
+            window.request_redraw();
         }
     }
 }
@@ -390,6 +398,7 @@ pub fn run() -> Result<()> {
     let event_loop = EventLoop::new()?;
     let mut app = App {
         chaos_engine: None,
+        window: None,
     };
 
     event_loop.run_app(&mut app)?;
