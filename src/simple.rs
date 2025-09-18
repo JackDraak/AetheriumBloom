@@ -19,20 +19,10 @@ use crate::audio::{AudioConsciousnessEngine, AudioEnvironment, AudioAnalysisData
 // === UNIFIED VERTEX SYSTEM ===
 use crate::reality::{Vertex, DynamicVertexBuffer, VertexBudgetManager, BufferConfig};
 
-// === PSYCHEDELIC SHADER UNIFORMS ===
-
-/// Uniform data structure matching the psychedelic.wgsl shader
-#[repr(C)]
-#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct PsychedelicUniforms {
-    pub time: f32,
-    pub reality_distortion: f32,
-    pub consciousness_level: f32,
-    pub beat_intensity: f32,
-    pub screen_resolution: [f32; 2],
-    pub beat_frequency: f32,
-    pub cosmic_phase: f32,
-}
+// === MODULAR SYSTEMS ===
+use crate::engine::safety::{SafetyConfig, FlashTracker, calculate_luminance, limit_luminance_change, is_dangerous_red, rgb_to_hsv, hsv_to_rgb_vec3};
+use crate::rendering::PsychedelicUniforms;
+use crate::entities::{SpeciesType, ConsciousnessLevel};
 
 // === CRITICAL SAFETY SYSTEMS FOR EPILEPSY PROTECTION ===
 
@@ -44,131 +34,11 @@ pub enum WarningResponse {
     Exit,         // User chooses to exit
 }
 
-/// Simple safety configuration
-#[derive(Debug, Clone)]
-pub struct SafetyConfig {
-    pub visual_intensity_limit: f32,  // 0.0 to 1.0
-    pub max_flash_rate: f32,          // Hz (3.0 is international standard)
-    pub max_luminance_change: f32,    // 0.0 to 1.0 (0.1 is 10% standard)
-    pub red_flash_protection: bool,
-}
 
-impl Default for SafetyConfig {
-    fn default() -> Self {
-        Self {
-            visual_intensity_limit: 1.0,     // Full intensity by default
-            max_flash_rate: 3.0,             // International safety standard
-            max_luminance_change: 0.1,       // 10% WCAG standard
-            red_flash_protection: true,
-        }
-    }
-}
 
-impl SafetyConfig {
-    pub fn safe_mode() -> Self {
-        Self {
-            visual_intensity_limit: 0.5,     // 50% intensity
-            max_flash_rate: 2.0,             // Even more conservative
-            max_luminance_change: 0.05,      // 5% change
-            red_flash_protection: true,
-        }
-    }
-}
-
-/// Simple flash tracker to enforce rate limiting
-#[derive(Debug)]
-pub struct FlashTracker {
-    last_major_change: f64,
-    change_count_in_window: u32,
-    window_start_time: f64,
-    window_duration: f64,
-}
-
-impl FlashTracker {
-    pub fn new() -> Self {
-        Self {
-            last_major_change: 0.0,
-            change_count_in_window: 0,
-            window_start_time: 0.0,
-            window_duration: 1.0, // 1 second window
-        }
-    }
-
-    pub fn can_allow_flash(&mut self, current_time: f64, max_rate: f32) -> bool {
-        // Reset window if needed
-        if current_time - self.window_start_time > self.window_duration {
-            self.window_start_time = current_time;
-            self.change_count_in_window = 0;
-        }
-
-        // Check if we're under the rate limit
-        let flashes_per_second = self.change_count_in_window as f32 / self.window_duration as f32;
-        if flashes_per_second >= max_rate {
-            return false;
-        }
-
-        // Check minimum interval (1/3 Hz = 0.33 seconds for 3 Hz)
-        let min_interval = 1.0 / max_rate as f64;
-        if current_time - self.last_major_change < min_interval {
-            return false;
-        }
-
-        true
-    }
-
-    pub fn record_flash(&mut self, current_time: f64) {
-        self.last_major_change = current_time;
-        self.change_count_in_window += 1;
-    }
-}
-
-/// Calculate perceived luminance of a color
-fn calculate_luminance(color: &Vec3) -> f32 {
-    // ITU-R BT.709 luma coefficients
-    0.2126 * color.x + 0.7152 * color.y + 0.0722 * color.z
-}
-
-/// Limit luminance changes to safe levels
-fn limit_luminance_change(new_color: Vec3, old_color: Vec3, max_change: f32) -> Vec3 {
-    let new_luma = calculate_luminance(&new_color);
-    let old_luma = calculate_luminance(&old_color);
-    let change = (new_luma - old_luma).abs();
-
-    if change <= max_change {
-        return new_color;
-    }
-
-    // Interpolate to safe level
-    let safe_factor = max_change / change;
-    old_color.lerp(new_color, safe_factor * 0.5) // Extra conservative with 0.5 factor
-}
-
-/// Check if color is in dangerous red range
-fn is_dangerous_red(color: Vec3) -> bool {
-    let hsv = rgb_to_hsv(color);
-    (hsv.x >= 345.0 || hsv.x <= 15.0) && hsv.y > 0.5 && hsv.z > 0.5
-}
-
-/// Convert RGB to HSV
-fn rgb_to_hsv(rgb: Vec3) -> Vec3 {
-    let max = rgb.x.max(rgb.y.max(rgb.z));
-    let min = rgb.x.min(rgb.y.min(rgb.z));
-    let delta = max - min;
-
-    let hue = if delta == 0.0 {
-        0.0
-    } else if max == rgb.x {
-        60.0 * (((rgb.y - rgb.z) / delta) % 6.0)
-    } else if max == rgb.y {
-        60.0 * ((rgb.z - rgb.x) / delta + 2.0)
-    } else {
-        60.0 * ((rgb.x - rgb.y) / delta + 4.0)
-    };
-
-    let saturation = if max == 0.0 { 0.0 } else { delta / max };
-    let value = max;
-
-    Vec3::new(hue.abs(), saturation, value)
+/// Convert HSV to RGB (convenience wrapper)
+fn hsv_to_rgb(hue: f32, saturation: f32, value: f32) -> Vec3 {
+    hsv_to_rgb_vec3(Vec3::new(hue, saturation, value))
 }
 
 /// Show console safety warning and get user response
@@ -861,22 +731,9 @@ pub struct LlamaSnapshot {
     pub consciousness: f32,
 }
 
-#[derive(Debug, Clone, PartialEq, Copy)]
-pub enum SpeciesType {
-    DiscoLlama,
-    QuantumSheep,
-    HypnoCamel,
-}
 
 // PHASE 5: CONSCIOUSNESS MULTIPLICATION - "When One Mind Becomes Legion"
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ConsciousnessLevel {
-    Individual,    // Single entity consciousness
-    Pack,         // Small group collective (2-8 entities)
-    Hive,         // Large collective super-consciousness (9+ entities)
-    Meta,         // Transcendent awareness observer
-}
 
 #[derive(Debug, Clone)]
 pub struct ConsciousnessHierarchy {
@@ -6707,9 +6564,9 @@ impl ChaosEngine {
             // Convert llamas to audio-compatible format
             let llama_audio_data: Vec<crate::audio::CompatLlamaRenderData> = self.llamas.iter().map(|llama| {
                 let species = match llama.species {
-                    Species::DiscoLlama => crate::audio::CompatLlamaSpecies::Disco,
-                    Species::QuantumSheep => crate::audio::CompatLlamaSpecies::Quantum,
-                    Species::HypnoCamel => crate::audio::CompatLlamaSpecies::BassDrop,
+                    SpeciesType::DiscoLlama => crate::audio::CompatLlamaSpecies::Disco,
+                    SpeciesType::QuantumSheep => crate::audio::CompatLlamaSpecies::Quantum,
+                    SpeciesType::HypnoCamel => crate::audio::CompatLlamaSpecies::BassDrop,
                 };
 
                 crate::audio::CompatLlamaRenderData {
@@ -8001,29 +7858,6 @@ impl ChaosEngine {
     }
 }
 
-fn hsv_to_rgb(h: f32, s: f32, v: f32) -> glam::Vec3 {
-    let c = v * s;
-    let h_prime = h / 60.0;
-    let x = c * (1.0 - ((h_prime % 2.0) - 1.0).abs());
-    let m = v - c;
-
-    let (r, g, b) = match h_prime as i32 {
-        0 => (c, x, 0.0),
-        1 => (x, c, 0.0),
-        2 => (0.0, c, x),
-        3 => (0.0, x, c),
-        4 => (x, 0.0, c),
-        5 => (c, 0.0, x),
-        _ => (0.0, 0.0, 0.0),
-    };
-
-    glam::Vec3::new(r + m, g + m, b + m)
-}
-
-/// HSV to RGB conversion for Vec3 input
-fn hsv_to_rgb_vec3(hsv: Vec3) -> Vec3 {
-    hsv_to_rgb(hsv.x, hsv.y, hsv.z)
-}
 
 struct App {
     chaos_engine: Option<ChaosEngine>,

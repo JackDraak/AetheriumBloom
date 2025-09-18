@@ -4,6 +4,10 @@
 pub mod audio;
 pub mod consciousness;
 pub mod core;
+pub mod engine;
+pub mod entities;
 pub mod input;
 pub mod mathematics;
 pub mod reality;
+pub mod rendering;
+pub mod simple;
