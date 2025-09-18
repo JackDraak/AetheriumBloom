@@ -14,7 +14,7 @@ use std::io::{self, Write};
 use std::collections::{VecDeque, HashMap};
 
 // === AUDIO CONSCIOUSNESS LAYER ===
-use crate::audio::{AudioConsciousnessEngine, AudioEnvironment, AudioAnalysisData};
+use crate::audio::{AudioConsciousnessEngine, AudioEnvironment, AudioAnalysisData, AudioMode};
 
 // === UNIFIED VERTEX SYSTEM ===
 use crate::reality::{Vertex, DynamicVertexBuffer, VertexBudgetManager, BufferConfig};
@@ -6632,14 +6632,14 @@ impl ChaosEngine {
             };
 
             // Convert llamas to audio-compatible format
-            let llama_audio_data: Vec<crate::audio::consciousness::LlamaRenderData> = self.llamas.iter().map(|llama| {
+            let llama_audio_data: Vec<crate::audio::CompatLlamaRenderData> = self.llamas.iter().map(|llama| {
                 let species = match llama.species {
-                    Species::DiscoLlama => crate::audio::consciousness::LlamaSpecies::Disco,
-                    Species::QuantumSheep => crate::audio::consciousness::LlamaSpecies::Quantum,
-                    Species::HypnoCamel => crate::audio::consciousness::LlamaSpecies::BassDrop,
+                    Species::DiscoLlama => crate::audio::CompatLlamaSpecies::Disco,
+                    Species::QuantumSheep => crate::audio::CompatLlamaSpecies::Quantum,
+                    Species::HypnoCamel => crate::audio::CompatLlamaSpecies::BassDrop,
                 };
 
-                crate::audio::consciousness::LlamaRenderData {
+                crate::audio::CompatLlamaRenderData {
                     position: llama.position,
                     color_wavelength: Vec2::new(llama.hue, llama.resonance),
                     trip_intensity: llama.trip_intensity,
@@ -6662,15 +6662,8 @@ impl ChaosEngine {
             // Get updated audio analysis
             self.audio_analysis_data = audio_engine.get_audio_analysis();
 
-            // Handle chaos events for audio
-            if self.total_consciousness > 200.0 && self.beat_intensity > 0.9 {
-                let chaos_event = crate::audio::consciousness::ChaosEvent::RealityTear {
-                    strength: self.reality_distortion.emergence_amplification,
-                    position: Vec2::new(600.0, 400.0), // Center of screen
-                };
-                audio_engine.handle_chaos_event(&chaos_event);
-                println!("🌌 MAXIMUM PSYCHEDELIC AUDIO OVERLOAD - REALITY CONSCIOUSNESS BREACH! 🌌");
-            }
+            // Enhanced chaos event mapping for real-time audio responsiveness
+            self.handle_enhanced_audio_chaos_mapping(audio_engine);
 
             // Print audio consciousness status on significant events
             if (self.time * 4.0) as u32 % 60 == 0 { // Every 15 seconds
@@ -6898,12 +6891,12 @@ impl ChaosEngine {
             ];
 
             vertices.extend([
-                Vertex { position: [x - s, y - s, 0.0], color: final_color, uv: [0.0, 0.0], uv: [0.5, 0.5] },
-                Vertex { position: [x + s, y - s, 0.0], color: final_color, uv: [1.0, 0.0], uv: [0.5, 0.5] },
-                Vertex { position: [x - s, y + s, 0.0], color: final_color, uv: [0.0, 1.0], uv: [0.5, 0.5] },
-                Vertex { position: [x + s, y - s, 0.0], color: final_color, uv: [1.0, 0.0], uv: [0.5, 0.5] },
-                Vertex { position: [x + s, y + s, 0.0], color: final_color, uv: [1.0, 1.0], uv: [0.5, 0.5] },
-                Vertex { position: [x - s, y + s, 0.0], color: final_color, uv: [0.0, 1.0], uv: [0.5, 0.5] },
+                Vertex { position: [x - s, y - s, 0.0], color: final_color, uv: [0.0, 0.0] },
+                Vertex { position: [x + s, y - s, 0.0], color: final_color, uv: [1.0, 0.0] },
+                Vertex { position: [x - s, y + s, 0.0], color: final_color, uv: [0.0, 1.0] },
+                Vertex { position: [x + s, y - s, 0.0], color: final_color, uv: [1.0, 0.0] },
+                Vertex { position: [x + s, y + s, 0.0], color: final_color, uv: [1.0, 1.0] },
+                Vertex { position: [x - s, y + s, 0.0], color: final_color, uv: [0.0, 1.0] },
             ]);
 
             // Add memory fragment visualization for high-consciousness llamas
@@ -6921,12 +6914,12 @@ impl ChaosEngine {
                     ];
 
                     vertices.extend([
-                        Vertex { position: [mem_x - mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [0.0, 0.0], uv: [0.5, 0.5] },
-                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [1.0, 0.0], uv: [0.5, 0.5] },
-                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [0.0, 1.0], uv: [0.5, 0.5] },
-                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [1.0, 0.0], uv: [0.5, 0.5] },
-                        Vertex { position: [mem_x + mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [1.0, 1.0], uv: [0.5, 0.5] },
-                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [0.0, 1.0], uv: [0.5, 0.5] },
+                        Vertex { position: [mem_x - mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [0.0, 0.0] },
+                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [1.0, 0.0] },
+                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [0.0, 1.0] },
+                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [1.0, 0.0] },
+                        Vertex { position: [mem_x + mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [1.0, 1.0] },
+                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [0.0, 1.0] },
                     ]);
                 }
             }
@@ -6957,12 +6950,12 @@ impl ChaosEngine {
 
             // Crystal rendered as a diamond shape
             vertices.extend([
-                Vertex { position: [x, y - s, 0.0], color: crystal_color_array, uv: [0.5, 0.0], uv: [0.5, 0.5] },
-                Vertex { position: [x + s, y, 0.0], color: crystal_color_array, uv: [0.5, 0.5] },
-                Vertex { position: [x, y + s, 0.0], color: crystal_color_array, uv: [0.5, 0.5] },
-                Vertex { position: [x, y - s, 0.0], color: crystal_color_array, uv: [0.5, 0.0], uv: [0.5, 0.5] },
-                Vertex { position: [x - s, y, 0.0], color: crystal_color_array, uv: [0.5, 0.5] },
-                Vertex { position: [x, y + s, 0.0], color: crystal_color_array, uv: [0.5, 0.5] },
+                Vertex { position: [x, y - s, 0.0], color: crystal_color_array, uv: [0.5, 0.0] },
+                Vertex { position: [x + s, y, 0.0], color: crystal_color_array, uv: [1.0, 0.5] },
+                Vertex { position: [x, y + s, 0.0], color: crystal_color_array, uv: [0.5, 1.0] },
+                Vertex { position: [x, y - s, 0.0], color: crystal_color_array, uv: [0.5, 0.0] },
+                Vertex { position: [x - s, y, 0.0], color: crystal_color_array, uv: [0.0, 0.5] },
+                Vertex { position: [x, y + s, 0.0], color: crystal_color_array, uv: [0.5, 1.0] },
             ]);
 
             // Add harvest radius visualization for high-energy crystals
@@ -7533,7 +7526,7 @@ impl ChaosEngine {
         Ok(())
     }
 
-    /// Handle keyboard input for emergency stop
+    /// Handle keyboard input for emergency stop and audio controls
     pub fn handle_keyboard(&mut self, key_event: &KeyEvent) {
         if key_event.state == ElementState::Pressed {
             match &key_event.logical_key {
@@ -7547,8 +7540,179 @@ impl ChaosEngine {
                         self.request_emergency_stop();
                     }
                 }
+                // Audio Mode Controls
+                Key::Character(c) => {
+                    let char_key = c.chars().next().unwrap_or('\0').to_ascii_lowercase();
+
+                    // Audio mode switching (M = Mellow, A = Active, C = Chaotic)
+                    if let Some(mode) = AudioMode::from_key_char(char_key) {
+                        if let Some(audio_engine) = &mut self.audio_consciousness {
+                            audio_engine.set_audio_mode(mode);
+                        }
+                    }
+
+                    match char_key {
+                        // Volume controls
+                        '+' | '=' => {
+                            if let Some(audio_engine) = &mut self.audio_consciousness {
+                                audio_engine.adjust_volume(0.1);
+                            }
+                        }
+                        '-' | '_' => {
+                            if let Some(audio_engine) = &mut self.audio_consciousness {
+                                audio_engine.adjust_volume(-0.1);
+                            }
+                        }
+                        // Audio toggle
+                        ' ' => {
+                            if let Some(audio_engine) = &mut self.audio_consciousness {
+                                audio_engine.toggle_audio();
+                            }
+                        }
+                        // Number keys for speed control (1-9)
+                        '1' => self.set_audio_speed(0.2),
+                        '2' => self.set_audio_speed(0.4),
+                        '3' => self.set_audio_speed(0.6),
+                        '4' => self.set_audio_speed(0.8),
+                        '5' => self.set_audio_speed(1.0),
+                        '6' => self.set_audio_speed(1.2),
+                        '7' => self.set_audio_speed(1.5),
+                        '8' => self.set_audio_speed(2.0),
+                        '9' => self.set_audio_speed(3.0),
+                        // Show audio status
+                        'h' | '?' => self.show_audio_status(),
+                        _ => {}
+                    }
+                }
+                // Arrow keys for speed adjustment
+                Key::Named(NamedKey::ArrowUp) => {
+                    if let Some(audio_engine) = &mut self.audio_consciousness {
+                        audio_engine.adjust_speed(0.1);
+                    }
+                }
+                Key::Named(NamedKey::ArrowDown) => {
+                    if let Some(audio_engine) = &mut self.audio_consciousness {
+                        audio_engine.adjust_speed(-0.1);
+                    }
+                }
+                // Left/Right arrows for volume
+                Key::Named(NamedKey::ArrowLeft) => {
+                    if let Some(audio_engine) = &mut self.audio_consciousness {
+                        audio_engine.adjust_volume(-0.05);
+                    }
+                }
+                Key::Named(NamedKey::ArrowRight) => {
+                    if let Some(audio_engine) = &mut self.audio_consciousness {
+                        audio_engine.adjust_volume(0.05);
+                    }
+                }
                 _ => {}
             }
+        }
+    }
+
+    fn set_audio_speed(&mut self, speed: f32) {
+        if let Some(audio_engine) = &mut self.audio_consciousness {
+            audio_engine.get_controls_mut().speed = speed;
+            println!("⚡ Speed set to: {:.1}x", speed);
+        }
+    }
+
+    /// Display current audio control status
+    pub fn show_audio_status(&self) {
+        if let Some(audio_engine) = &self.audio_consciousness {
+            let controls = audio_engine.get_controls();
+            let status = if controls.enabled { "ON" } else { "OFF" };
+
+            println!("\n🎵 ═══ AUDIO CONTROL STATUS ═══");
+            println!("   Mode: {} | Volume: {:.0}% | Speed: {:.1}x | Audio: {}",
+                     controls.mode.to_string(),
+                     controls.volume * 100.0,
+                     controls.speed,
+                     status);
+            println!("   Controls: M/A/C=Mode | +/-=Volume | ↑↓=Speed | Space=Toggle | 1-9=Speed Preset");
+            println!("🎵 ════════════════════════════");
+        } else {
+            println!("🔇 Audio engine not available");
+        }
+    }
+
+    /// Enhanced chaos event mapping for real-time audio responsiveness
+    fn handle_enhanced_audio_chaos_mapping(&mut self, audio_engine: &mut AudioConsciousnessEngine) {
+        // Map reality distortion to audio chaos
+        if self.reality_distortion.emergence_amplification > 0.8 {
+            let chaos_event = crate::audio::CompatChaosEvent::RealityTear {
+                strength: self.reality_distortion.emergence_amplification,
+                position: self.cursor_position,
+            };
+            audio_engine.handle_chaos_event(&chaos_event);
+        }
+
+        // Map total consciousness levels to audio events
+        match self.total_consciousness {
+            c if c > 200.0 && self.beat_intensity > 0.9 => {
+                let chaos_event = crate::audio::CompatChaosEvent::RealityTear {
+                    strength: 1.0,
+                    position: Vec2::new(600.0, 400.0),
+                };
+                audio_engine.handle_chaos_event(&chaos_event);
+                println!("🌌 MAXIMUM PSYCHEDELIC AUDIO OVERLOAD - REALITY CONSCIOUSNESS BREACH! 🌌");
+            },
+            c if c > 100.0 => {
+                // High consciousness - increase audio chaos frequency
+                if self.time % 2.0 < 0.1 { // Trigger every 2 seconds briefly
+                    let chaos_event = crate::audio::CompatChaosEvent::LlamaSpawned {
+                        consciousness: c / 10.0,
+                    };
+                    audio_engine.handle_chaos_event(&chaos_event);
+                }
+            },
+            _ => {}
+        }
+
+        // Map llama movement and interactions to audio
+        let total_movement_energy: f32 = self.llamas.iter()
+            .map(|llama| llama.velocity.length() * llama.trip_intensity)
+            .sum();
+
+        if total_movement_energy > 50.0 {
+            // High energy movement triggers crystal harvest sounds
+            let chaos_event = crate::audio::CompatChaosEvent::CrystalHarvested;
+            audio_engine.handle_chaos_event(&chaos_event);
+        }
+
+        // Map beat drops to audio events
+        if self.beat_intensity > 0.95 && self.beat_accumulator > 0.8 {
+            // Major beat drop - spawn audio event
+            let chaos_event = crate::audio::CompatChaosEvent::LlamaSpawned {
+                consciousness: self.beat_intensity * 10.0,
+            };
+            audio_engine.handle_chaos_event(&chaos_event);
+        }
+
+        // Map fractal complexity to audio
+        if self.fractal_complexity > 0.7 {
+            // High fractal complexity creates reality tears
+            let tear_strength = (self.fractal_complexity - 0.5) * 2.0;
+            let chaos_event = crate::audio::CompatChaosEvent::RealityTear {
+                strength: tear_strength,
+                position: Vec2::new(
+                    300.0 + (self.time * 100.0).sin() * 200.0,
+                    300.0 + (self.time * 150.0).cos() * 200.0,
+                ),
+            };
+            audio_engine.handle_chaos_event(&chaos_event);
+        }
+
+        // Map species warfare to audio chaos
+        let warfare_intensity = self.consciousness_multiplication.warfare_state.active_conflicts.len() as f32 * 0.1;
+        if warfare_intensity > 0.3 {
+            // Species conflict creates audio distortion
+            let chaos_event = crate::audio::CompatChaosEvent::RealityTear {
+                strength: warfare_intensity.min(1.0),
+                position: self.cursor_position,
+            };
+            audio_engine.handle_chaos_event(&chaos_event);
         }
     }
 }
@@ -7611,6 +7775,12 @@ impl ApplicationHandler for App {
         };
         println!("✨ Window created and ready for {}!", mode_text);
         println!("🛡️ Safety systems active - Flash limiting, luminance control, red flash protection");
+
+        // Show audio control status on startup
+        if let Some(engine) = &self.chaos_engine {
+            engine.show_audio_status();
+        }
+
         window.request_redraw();
     }
 

@@ -155,11 +155,21 @@ impl RealityDistortionProcessor {
                          input_sample: f32,
                          sample_time: f64,
                          beat_state: &BeatState) -> f32 {
+        self.process_sample_with_intensity(input_sample, sample_time, beat_state, 1.0)
+    }
+
+    /// Process audio sample with custom intensity multiplier for user control
+    pub fn process_sample_with_intensity(&mut self,
+                                       input_sample: f32,
+                                       sample_time: f64,
+                                       beat_state: &BeatState,
+                                       intensity_multiplier: f32) -> f32 {
 
         let mut sample = input_sample;
+        let effective_distortion_level = self.distortion_level * intensity_multiplier;
 
         // Apply effects in consciousness-determined order
-        match self.distortion_level {
+        match effective_distortion_level {
             level if level < 0.2 => {
                 // Minimal distortion - just slight filtering
                 sample = self.consciousness_filter.process(sample);

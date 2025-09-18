@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use glam::Vec2;
 use primes::{PrimeSet, Sieve};
 
-use crate::consciousness::LlamaSpecies;
+use super::CompatLlamaSpecies;
 use crate::mathematics::BeatState;
 use super::AudioEnvironment;
 
@@ -186,7 +186,7 @@ impl PsychedelicSynthesizer {
                           beat_state: &BeatState,
                           environment: &AudioEnvironment,
                           total_consciousness: f32,
-                          species_counts: &HashMap<LlamaSpecies, u32>) -> f32 {
+                          species_counts: &HashMap<CompatLlamaSpecies, u32>) -> f32 {
 
         self.master_phase += 1.0 / self.sample_rate as f64;
 
@@ -205,7 +205,7 @@ impl PsychedelicSynthesizer {
         let mut sample = 0.0;
 
         // Disco Llamas: Main melodic content
-        if let Some(&disco_count) = species_counts.get(&LlamaSpecies::Disco) {
+        if let Some(&disco_count) = species_counts.get(&CompatLlamaSpecies::Disco) {
             if disco_count > 0 {
                 let disco_contribution = self.disco_llama_bank.generate_sample(
                     modulated_freq * 1.0, // Fundamental frequency
@@ -217,7 +217,7 @@ impl PsychedelicSynthesizer {
         }
 
         // Quantum Sheep: High-frequency consciousness harmonics
-        if let Some(&quantum_count) = species_counts.get(&LlamaSpecies::Quantum) {
+        if let Some(&quantum_count) = species_counts.get(&CompatLlamaSpecies::Quantum) {
             if quantum_count > 0 {
                 let quantum_contribution = self.quantum_sheep_bank.generate_sample(
                     modulated_freq * 2.0, // Higher harmonics
@@ -229,7 +229,7 @@ impl PsychedelicSynthesizer {
         }
 
         // BassDrop Vicunas: Massive low-frequency content
-        if let Some(&bass_count) = species_counts.get(&LlamaSpecies::BassDrop) {
+        if let Some(&bass_count) = species_counts.get(&CompatLlamaSpecies::BassDrop) {
             if bass_count > 0 {
                 let bass_contribution = self.bassdrop_vicuna_bank.generate_sample(
                     modulated_freq * 0.25, // Sub-bass
