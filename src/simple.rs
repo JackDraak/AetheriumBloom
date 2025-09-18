@@ -6338,7 +6338,7 @@ impl ChaosEngine {
 
         let vertex_buffer = device.create_buffer(&BufferDescriptor {
             label: Some("Vertex Buffer"),
-            size: 60000 * std::mem::size_of::<Vertex>() as u64,
+            size: 200000 * std::mem::size_of::<Vertex>() as u64, // Increased for Phase 5 consciousness multiplication
             usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
