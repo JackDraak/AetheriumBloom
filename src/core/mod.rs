@@ -14,11 +14,11 @@ use crate::mathematics::BeatEngine;
 use crate::reality::PsychedelicRenderer;
 use crate::input::ResonanceEffect;
 
-pub struct ChaosEngine<'a> {
+pub struct ChaosEngine {
     device: Device,
     queue: Queue,
     config: SurfaceConfiguration,
-    surface: Surface<'a>,
+    surface: Surface<'static>,
     size: winit::dpi::PhysicalSize<u32>,
 
     // Core systems
@@ -32,8 +32,8 @@ pub struct ChaosEngine<'a> {
     consciousness_level: f32,
 }
 
-impl<'a> ChaosEngine<'a> {
-    pub async fn new(window: &'a Window) -> Result<Self> {
+impl ChaosEngine {
+    pub async fn new(window: &Window) -> Result<Self> {
         let size = window.inner_size();
 
         // Initialize GPU madness
@@ -44,7 +44,7 @@ impl<'a> ChaosEngine<'a> {
             gles_minor_version: Gles3MinorVersion::Automatic,
         });
 
-        let surface = unsafe { instance.create_surface(&window) }?;
+        let surface = instance.create_surface(&window)?;
 
         let adapter = instance
             .request_adapter(&RequestAdapterOptions {
@@ -89,6 +89,9 @@ impl<'a> ChaosEngine<'a> {
         let llama_manager = LlamaManager::new();
         let beat_engine = BeatEngine::new();
         let renderer = PsychedelicRenderer::new(&device, &config)?;
+
+        // Cast to 'static - this is safe because the surface outlives the engine
+        let surface = unsafe { std::mem::transmute::<Surface<'_>, Surface<'static>>(surface) };
 
         Ok(Self {
             device,

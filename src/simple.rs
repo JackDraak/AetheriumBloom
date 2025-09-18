@@ -19,6 +19,21 @@ use crate::audio::{AudioConsciousnessEngine, AudioEnvironment, AudioAnalysisData
 // === UNIFIED VERTEX SYSTEM ===
 use crate::reality::{Vertex, DynamicVertexBuffer, VertexBudgetManager, BufferConfig};
 
+// === PSYCHEDELIC SHADER UNIFORMS ===
+
+/// Uniform data structure matching the psychedelic.wgsl shader
+#[repr(C)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct PsychedelicUniforms {
+    pub time: f32,
+    pub reality_distortion: f32,
+    pub consciousness_level: f32,
+    pub beat_intensity: f32,
+    pub screen_resolution: [f32; 2],
+    pub beat_frequency: f32,
+    pub cosmic_phase: f32,
+}
+
 // === CRITICAL SAFETY SYSTEMS FOR EPILEPSY PROTECTION ===
 
 /// User's response to safety warning
@@ -6219,6 +6234,11 @@ pub struct ChaosEngine {
     dynamic_vertex_buffer: DynamicVertexBuffer,
     budget_manager: VertexBudgetManager,
 
+    // Psychedelic shader uniforms
+    uniform_buffer: Buffer,
+    uniform_bind_group: BindGroup,
+    uniforms: PsychedelicUniforms,
+
     llamas: Vec<Llama>,
     time: f32,
     beat_intensity: f32,
@@ -6299,9 +6319,56 @@ impl ChaosEngine {
             source: ShaderSource::Wgsl(include_str!("reality/shaders/psychedelic.wgsl").into()),
         });
 
+        // Create uniform buffer and bind group for psychedelic shader
+        let uniforms = PsychedelicUniforms {
+            time: 0.0,
+            reality_distortion: 0.0,
+            consciousness_level: 1.0,
+            beat_intensity: 0.0,
+            screen_resolution: [size.width as f32, size.height as f32],
+            beat_frequency: 1.0,
+            cosmic_phase: 0.0,
+        };
+
+        let uniform_buffer = device.create_buffer(&BufferDescriptor {
+            label: Some("Uniform Buffer"),
+            size: std::mem::size_of::<PsychedelicUniforms>() as u64,
+            usage: BufferUsages::UNIFORM | BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
+        let uniform_bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+            label: Some("Uniform Bind Group Layout"),
+            entries: &[BindGroupLayoutEntry {
+                binding: 0,
+                visibility: ShaderStages::VERTEX | ShaderStages::FRAGMENT,
+                ty: BindingType::Buffer {
+                    ty: BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+        });
+
+        let uniform_bind_group = device.create_bind_group(&BindGroupDescriptor {
+            label: Some("Uniform Bind Group"),
+            layout: &uniform_bind_group_layout,
+            entries: &[BindGroupEntry {
+                binding: 0,
+                resource: uniform_buffer.as_entire_binding(),
+            }],
+        });
+
+        let render_pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
+            label: Some("Render Pipeline Layout"),
+            bind_group_layouts: &[&uniform_bind_group_layout],
+            push_constant_ranges: &[],
+        });
+
         let render_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
             label: Some("Render Pipeline"),
-            layout: None,
+            layout: Some(&render_pipeline_layout),
             vertex: VertexState {
                 module: &shader,
                 entry_point: "vs_main",
@@ -6370,6 +6437,12 @@ impl ChaosEngine {
             render_pipeline,
             dynamic_vertex_buffer,
             budget_manager,
+
+            // Psychedelic shader uniforms
+            uniform_buffer,
+            uniform_bind_group,
+            uniforms,
+
             llamas,
             time: 0.0,
             beat_intensity: 0.0,
@@ -6745,6 +6818,18 @@ impl ChaosEngine {
 
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&TextureViewDescriptor::default());
+
+        // Update psychedelic shader uniforms
+        self.uniforms.time = self.time;
+        self.uniforms.reality_distortion = self.reality_distortion.current_intensity();
+        self.uniforms.consciousness_level = self.total_consciousness;
+        self.uniforms.beat_intensity = self.beat_intensity;
+        self.uniforms.screen_resolution = [self.config.width as f32, self.config.height as f32];
+        self.uniforms.beat_frequency = self.advanced_beat_engine.base_frequency();
+        self.uniforms.cosmic_phase = self.advanced_beat_engine.cosmic_phase();
+
+        // Write updated uniforms to buffer
+        self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[self.uniforms]));
 
         // Ensure we have color tracking for all llamas
         while self.previous_llama_colors.len() < self.llamas.len() {
@@ -7669,6 +7754,7 @@ impl ChaosEngine {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
+            render_pass.set_bind_group(0, &self.uniform_bind_group, &[]);
             if !vertices.is_empty() {
                 if let Some(buffer) = self.dynamic_vertex_buffer.get_buffer() {
                     render_pass.set_vertex_buffer(0, buffer.slice(..));
@@ -8001,6 +8087,11 @@ impl ApplicationHandler for App {
             WindowEvent::MouseInput { state, button, .. } => {
                 if let Some(engine) = &mut self.chaos_engine {
                     engine.handle_click(button, state);
+                }
+            }
+            WindowEvent::CursorMoved { position, .. } => {
+                if let Some(engine) = &mut self.chaos_engine {
+                    engine.handle_cursor_moved(position);
                 }
             }
             WindowEvent::KeyboardInput { event, .. } => {
