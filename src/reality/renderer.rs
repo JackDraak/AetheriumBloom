@@ -1,13 +1,13 @@
 use anyhow::Result;
 use wgpu::*;
-use crate::reality::{RenderData, Vertex, UniformData, create_llama_geometry, hsv_to_rgb};
+use crate::reality::{RenderData, Vertex, UniformData, create_llama_geometry, hsv_to_rgb, DynamicVertexBuffer, VertexBudgetManager, BufferConfig};
 
 pub struct PsychedelicRenderer {
     render_pipeline: RenderPipeline,
-    vertex_buffer: Buffer,
+    dynamic_vertex_buffer: DynamicVertexBuffer,
     uniform_buffer: Buffer,
     uniform_bind_group: BindGroup,
-    max_vertices: usize,
+    budget_manager: VertexBudgetManager,
 }
 
 impl PsychedelicRenderer {
@@ -72,13 +72,24 @@ impl PsychedelicRenderer {
             multiview: None,
         });
 
-        let max_vertices = 100000; // Support many llamas
-        let vertex_buffer = device.create_buffer(&BufferDescriptor {
-            label: Some("Vertex Buffer"),
-            size: (max_vertices * std::mem::size_of::<Vertex>()) as u64,
-            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
+        // Initialize dynamic buffer management system
+        let buffer_config = BufferConfig {
+            initial_capacity: 100_000,
+            max_capacity: 1_000_000, // Increased max capacity with safety limits
+            growth_factor: 1.5,
+            usage_history_frames: 60,
+            resize_threshold: 0.8,
+        };
+
+        let dynamic_vertex_buffer = DynamicVertexBuffer::new(
+            buffer_config,
+            std::mem::size_of::<Vertex>() as u64
+        );
+
+        // Initialize vertex budget manager with category budgets
+        let mut budget_manager = VertexBudgetManager::new(500_000); // Total frame budget
+        budget_manager.set_category_budget("llamas", 400_000);
+        budget_manager.set_category_budget("effects", 100_000);
 
         let uniform_buffer = device.create_buffer(&BufferDescriptor {
             label: Some("Uniform Buffer"),
@@ -98,18 +109,37 @@ impl PsychedelicRenderer {
 
         Ok(Self {
             render_pipeline,
-            vertex_buffer,
+            dynamic_vertex_buffer,
             uniform_buffer,
             uniform_bind_group,
-            max_vertices,
+            budget_manager,
         })
     }
 
     pub fn render(&mut self, device: &Device, queue: &Queue, view: &TextureView, render_data: RenderData) -> Result<(), SurfaceError> {
-        // Generate vertices for all llamas
+        // Start new frame for budget tracking
+        self.budget_manager.start_frame();
+
+        // Generate vertices for all llamas with budget management
         let mut vertices = Vec::new();
 
-        for llama in &render_data.llamas {
+        // Estimate total vertices needed for prediction
+        let estimated_vertices_per_llama = 6; // Each llama is a quad (2 triangles)
+        let estimated_total = render_data.llamas.len() * estimated_vertices_per_llama;
+
+        // Check budget allocation for llamas
+        let allocated_vertices = self.budget_manager.check_allocation("llamas", estimated_total);
+        let max_llamas = allocated_vertices / estimated_vertices_per_llama;
+
+        println!("Rendering {} llamas (limited to {} by budget), estimated {} vertices",
+                   render_data.llamas.len(), max_llamas, estimated_total);
+
+        for (i, llama) in render_data.llamas.iter().enumerate() {
+            if i >= max_llamas {
+                println!("Llama rendering limited by vertex budget at {}/{}", i, render_data.llamas.len());
+                break;
+            }
+
             let color = hsv_to_rgb(
                 llama.color_wavelength.x,
                 llama.color_wavelength.y,
@@ -121,14 +151,35 @@ impl PsychedelicRenderer {
             vertices.extend(llama_vertices);
         }
 
-        // Clamp vertices to buffer size
-        if vertices.len() > self.max_vertices {
-            vertices.truncate(self.max_vertices);
+        // Ensure buffer capacity and validate vertex count
+        if let Err(e) = self.dynamic_vertex_buffer.ensure_capacity(device, vertices.len()) {
+            eprintln!("Failed to ensure buffer capacity: {}", e);
+            return Err(SurfaceError::Lost);
+        }
+
+        let validated_vertex_count = match self.dynamic_vertex_buffer.validate_vertex_count(vertices.len()) {
+            Ok(count) => count,
+            Err(e) => {
+                eprintln!("Vertex validation failed: {}", e);
+                return Err(SurfaceError::Lost);
+            }
+        };
+
+        // Truncate vertices if validation reduced the count
+        if validated_vertex_count < vertices.len() {
+            vertices.truncate(validated_vertex_count);
+            println!("Vertices truncated from {} to {} due to capacity limits",
+                      vertices.len(), validated_vertex_count);
         }
 
         // Update vertex buffer
         if !vertices.is_empty() {
-            queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&vertices));
+            if let Some(buffer) = self.dynamic_vertex_buffer.get_buffer() {
+                queue.write_buffer(buffer, 0, bytemuck::cast_slice(&vertices));
+            } else {
+                eprintln!("No vertex buffer available for rendering");
+                return Err(SurfaceError::Lost);
+            }
         }
 
         // Update uniforms
@@ -171,10 +222,14 @@ impl PsychedelicRenderer {
 
             render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_bind_group(0, &self.uniform_bind_group, &[]);
-            render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
 
             if !vertices.is_empty() {
-                render_pass.draw(0..vertices.len() as u32, 0..1);
+                if let Some(buffer) = self.dynamic_vertex_buffer.get_buffer() {
+                    render_pass.set_vertex_buffer(0, buffer.slice(..));
+                    render_pass.draw(0..vertices.len() as u32, 0..1);
+                } else {
+                    println!("No vertex buffer available for render pass");
+                }
             }
         }
 
@@ -184,5 +239,27 @@ impl PsychedelicRenderer {
 
     pub fn resize(&mut self, _device: &Device, _config: &SurfaceConfiguration) {
         // TODO: Update screen resolution in uniforms
+    }
+
+    /// Get current buffer statistics for monitoring and debugging
+    pub fn get_buffer_stats(&self) -> (usize, bool, f32) {
+        (
+            self.dynamic_vertex_buffer.get_capacity(),
+            self.dynamic_vertex_buffer.is_circuit_breaker_active(),
+            self.budget_manager.get_average_usage(),
+        )
+    }
+
+    /// Get detailed usage statistics
+    pub fn get_usage_stats(&self) -> String {
+        let stats = self.dynamic_vertex_buffer.get_usage_stats();
+        format!(
+            "Buffer: {}k capacity, Peak: {}k, Avg: {:.1}k, Predicted: {}k, Budget Avg: {:.1}k",
+            self.dynamic_vertex_buffer.get_capacity() / 1000,
+            stats.get_peak_usage() / 1000,
+            stats.get_average_usage() / 1000.0,
+            stats.get_predicted_usage() / 1000,
+            self.budget_manager.get_average_usage() / 1000.0
+        )
     }
 }

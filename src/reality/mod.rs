@@ -2,6 +2,7 @@ pub mod renderer;
 pub mod fractals;
 pub mod colors;
 pub mod chaos;
+pub mod buffer_manager;
 
 use anyhow::Result;
 use wgpu::*;
@@ -12,6 +13,7 @@ pub use renderer::PsychedelicRenderer;
 pub use colors::ColorConsciousness;
 pub use fractals::FractalGenerator;
 pub use chaos::ChaosEffects;
+pub use buffer_manager::{DynamicVertexBuffer, VertexBudgetManager, BufferConfig};
 
 #[derive(Debug, Clone)]
 pub struct RenderData {

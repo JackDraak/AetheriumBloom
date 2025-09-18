@@ -13,6 +13,12 @@ use glam::{Vec2, Vec3};
 use std::io::{self, Write};
 use std::collections::{VecDeque, HashMap};
 
+// === AUDIO CONSCIOUSNESS LAYER ===
+use crate::audio::{AudioConsciousnessEngine, AudioEnvironment, AudioAnalysisData};
+
+// === UNIFIED VERTEX SYSTEM ===
+use crate::reality::{Vertex, DynamicVertexBuffer, VertexBudgetManager, BufferConfig};
+
 // === CRITICAL SAFETY SYSTEMS FOR EPILEPSY PROTECTION ===
 
 /// User's response to safety warning
@@ -744,33 +750,7 @@ pub struct TerritoryEffects {
 
 // Mathematical chaos engine using pre-calculated primes
 
-#[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-struct Vertex {
-    position: [f32; 3],
-    color: [f32; 3],
-}
-
-impl Vertex {
-    fn desc() -> VertexBufferLayout<'static> {
-        VertexBufferLayout {
-            array_stride: std::mem::size_of::<Vertex>() as BufferAddress,
-            step_mode: VertexStepMode::Vertex,
-            attributes: &[
-                VertexAttribute {
-                    offset: 0,
-                    shader_location: 0,
-                    format: VertexFormat::Float32x3,
-                },
-                VertexAttribute {
-                    offset: std::mem::size_of::<[f32; 3]>() as BufferAddress,
-                    shader_location: 1,
-                    format: VertexFormat::Float32x3,
-                },
-            ],
-        }
-    }
-}
+// Vertex struct now imported from crate::reality::Vertex for consistency
 
 // Phase 2: Mathematical Chaos Engine Components
 
@@ -6236,7 +6216,8 @@ pub struct ChaosEngine {
     config: SurfaceConfiguration,
     surface: Surface<'static>,
     render_pipeline: RenderPipeline,
-    vertex_buffer: Buffer,
+    dynamic_vertex_buffer: DynamicVertexBuffer,
+    budget_manager: VertexBudgetManager,
 
     llamas: Vec<Llama>,
     time: f32,
@@ -6260,11 +6241,18 @@ pub struct ChaosEngine {
     // Phase 5: Consciousness Multiplication
     consciousness_multiplication: ConsciousnessMultiplicationSystem,
 
+    // Phase 6: PSYCHEDELIC AUDIO CONSCIOUSNESS
+    audio_consciousness: Option<AudioConsciousnessEngine>,
+    audio_analysis_data: AudioAnalysisData,
+
     // CRITICAL SAFETY SYSTEMS - EPILEPSY PROTECTION
     safety_config: SafetyConfig,
     flash_tracker: FlashTracker,
     emergency_stop_requested: bool,
     previous_llama_colors: Vec<Vec3>, // Track previous colors for luminance limiting
+
+    // Cursor position tracking for audio environmental responsiveness
+    cursor_position: Vec2,
 }
 
 impl ChaosEngine {
@@ -6336,12 +6324,25 @@ impl ChaosEngine {
             multiview: None,
         });
 
-        let vertex_buffer = device.create_buffer(&BufferDescriptor {
-            label: Some("Vertex Buffer"),
-            size: 200000 * std::mem::size_of::<Vertex>() as u64, // Increased for Phase 5 consciousness multiplication
-            usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
+        // Initialize dynamic buffer management system
+        let buffer_config = BufferConfig {
+            initial_capacity: 250_000,
+            max_capacity: 2_000_000, // Increased max capacity with safety limits
+            growth_factor: 1.5,
+            usage_history_frames: 60,
+            resize_threshold: 0.8,
+        };
+
+        let dynamic_vertex_buffer = DynamicVertexBuffer::new(
+            buffer_config,
+            std::mem::size_of::<Vertex>() as u64
+        );
+
+        // Initialize vertex budget manager
+        let mut budget_manager = VertexBudgetManager::new(1_000_000); // Total frame budget
+        budget_manager.set_category_budget("llamas", 600_000);
+        budget_manager.set_category_budget("crystals", 200_000);
+        budget_manager.set_category_budget("effects", 200_000);
 
         // Start with 3 llamas - mix of species
         let mut llamas = Vec::new();
@@ -6367,7 +6368,8 @@ impl ChaosEngine {
             config,
             surface,
             render_pipeline,
-            vertex_buffer,
+            dynamic_vertex_buffer,
+            budget_manager,
             llamas,
             time: 0.0,
             beat_intensity: 0.0,
@@ -6390,11 +6392,35 @@ impl ChaosEngine {
             // Phase 5: Consciousness Multiplication
             consciousness_multiplication: ConsciousnessMultiplicationSystem::new(),
 
+            // Phase 6: PSYCHEDELIC AUDIO CONSCIOUSNESS
+            audio_consciousness: {
+                match AudioConsciousnessEngine::new() {
+                    Ok(engine) => {
+                        println!("🎵 PSYCHEDELIC AUDIO CONSCIOUSNESS LAYER - INITIALIZED!");
+                        println!("🔊 Maximum decibels, minimum code - Audio reality synthesis active");
+                        Some(engine)
+                    },
+                    Err(e) => {
+                        println!("🔇 Audio engine initialization failed: {} - Continuing in visual-only mode", e);
+                        None
+                    }
+                }
+            },
+            audio_analysis_data: AudioAnalysisData {
+                current_environment: AudioEnvironment::Environmental,
+                bass_level: 0.0,
+                treble_level: 0.0,
+                consciousness_frequency: 432.0,
+                reality_distortion_amount: 0.0,
+                hive_mind_coherence: 0.0,
+            },
+
             // CRITICAL SAFETY SYSTEMS - EPILEPSY PROTECTION
             safety_config: SafetyConfig::default(),
             flash_tracker: FlashTracker::new(),
             emergency_stop_requested: false,
             previous_llama_colors: Vec::new(),
+            cursor_position: Vec2::new(600.0, 400.0), // Start at center
         })
     }
 
@@ -6514,6 +6540,15 @@ impl ChaosEngine {
         }
     }
 
+    /// Handle cursor movement for environmental audio responsiveness
+    pub fn handle_cursor_moved(&mut self, position: winit::dpi::PhysicalPosition<f64>) {
+        // Convert to logical coordinates (scaling to 1200x800 window size)
+        self.cursor_position = Vec2::new(position.x as f32, position.y as f32);
+
+        // Chaotic audio mechanic: rapid cursor movement triggers audio chaos
+        // This will be processed by the audio engine's spatial processor
+    }
+
     fn adjust_spawn_weights(&mut self, spawned_species: &SpeciesType) {
         // Slightly reduce weight of spawned species to encourage diversity
         match spawned_species {
@@ -6584,6 +6619,73 @@ impl ChaosEngine {
 
         // Phase 5: Update Consciousness Multiplication System - "When One Mind Becomes Legion"
         self.consciousness_multiplication.update(1.0 / 60.0, &mut self.llamas, cosmic_time as f32);
+
+        // Phase 6: PSYCHEDELIC AUDIO CONSCIOUSNESS UPDATE - "Maximum Decibels, Minimum Code"
+        if let Some(ref mut audio_engine) = self.audio_consciousness {
+            // Create beat state from advanced beat engine
+            let beat_state = crate::audio::mathematics::BeatState {
+                is_beat_drop: self.beat_intensity > 0.8,
+                intensity: self.beat_intensity,
+                phase: self.time as f64,
+                prime_factor: self.advanced_beat_engine.prime_factors[0],
+                cosmic_frequency: 432.0 + self.total_consciousness * 2.0,
+            };
+
+            // Convert llamas to audio-compatible format
+            let llama_audio_data: Vec<crate::audio::consciousness::LlamaRenderData> = self.llamas.iter().map(|llama| {
+                let species = match llama.species {
+                    Species::DiscoLlama => crate::audio::consciousness::LlamaSpecies::Disco,
+                    Species::QuantumSheep => crate::audio::consciousness::LlamaSpecies::Quantum,
+                    Species::HypnoCamel => crate::audio::consciousness::LlamaSpecies::BassDrop,
+                };
+
+                crate::audio::consciousness::LlamaRenderData {
+                    position: llama.position,
+                    color_wavelength: Vec2::new(llama.hue, llama.resonance),
+                    trip_intensity: llama.trip_intensity,
+                    reality_distortion: llama.reality_distortion,
+                    species,
+                }
+            }).collect();
+
+            // Update cursor position for environmental audio responsiveness
+            audio_engine.update_cursor_position(self.cursor_position);
+
+            // Update the full audio consciousness engine
+            audio_engine.update(
+                cosmic_time,
+                &beat_state,
+                &llama_audio_data,
+                self.total_consciousness
+            );
+
+            // Get updated audio analysis
+            self.audio_analysis_data = audio_engine.get_audio_analysis();
+
+            // Handle chaos events for audio
+            if self.total_consciousness > 200.0 && self.beat_intensity > 0.9 {
+                let chaos_event = crate::audio::consciousness::ChaosEvent::RealityTear {
+                    strength: self.reality_distortion.emergence_amplification,
+                    position: Vec2::new(600.0, 400.0), // Center of screen
+                };
+                audio_engine.handle_chaos_event(&chaos_event);
+                println!("🌌 MAXIMUM PSYCHEDELIC AUDIO OVERLOAD - REALITY CONSCIOUSNESS BREACH! 🌌");
+            }
+
+            // Print audio consciousness status on significant events
+            if (self.time * 4.0) as u32 % 60 == 0 { // Every 15 seconds
+                println!("🎵 AUDIO CONSCIOUSNESS - Environment: {:?}, Bass: {:.2}, Consciousness: {:.1}, Frequency: {:.1}Hz",
+                         self.audio_analysis_data.current_environment,
+                         self.audio_analysis_data.bass_level,
+                         self.total_consciousness,
+                         self.audio_analysis_data.consciousness_frequency);
+            }
+        } else {
+            // Audio engine failed to initialize - continue with visual-only mode
+            if (self.time * 4.0) as u32 % 240 == 0 { // Every minute
+                println!("🔇 Audio engine unavailable - continuing in visual-only mode");
+            }
+        }
 
         // Update llamas with Phase 2, Phase 3, Phase 4, and Phase 5 enhancements
         // We need to clone the llamas vector for reference during updates
@@ -6656,9 +6758,30 @@ impl ChaosEngine {
             self.previous_llama_colors.push(Vec3::new(0.1, 0.1, 0.1)); // Safe default
         }
 
+        // Start new frame for budget tracking
+        self.budget_manager.start_frame();
+
         // Generate vertices for all llamas with Phase 2 species-enhanced visuals AND SAFETY FILTERING
+        // Estimate total vertices for predictive allocation
+        let estimated_vertices_per_llama = 6; // Each llama is a quad (2 triangles)
+        let estimated_crystal_vertices = self.ecosystem.crystals.len() * 6; // Crystal vertices
+        let estimated_effect_vertices = self.llamas.len() * 20; // Rough estimate for various effects
+
+        // Check budget allocations
+        let allocated_llama_vertices = self.budget_manager.check_allocation("llamas",
+                                                                          self.llamas.len() * estimated_vertices_per_llama);
+        let allocated_crystal_vertices = self.budget_manager.check_allocation("crystals", estimated_crystal_vertices);
+        let allocated_effect_vertices = self.budget_manager.check_allocation("effects", estimated_effect_vertices);
+
+        let max_llamas = allocated_llama_vertices / estimated_vertices_per_llama;
+
         let mut vertices = Vec::new();
         for (llama_id, llama) in self.llamas.iter().enumerate() {
+            // Apply budget limits
+            if llama_id >= max_llamas {
+                println!("Llama rendering limited by vertex budget at {}/{}", llama_id, self.llamas.len());
+                break;
+            }
             // Species-specific size calculation
             let base_size = match llama.species {
                 SpeciesType::DiscoLlama => 10.0 + llama.trip_intensity * 5.0,
@@ -6775,12 +6898,12 @@ impl ChaosEngine {
             ];
 
             vertices.extend([
-                Vertex { position: [x - s, y - s, 0.0], color: final_color },
-                Vertex { position: [x + s, y - s, 0.0], color: final_color },
-                Vertex { position: [x - s, y + s, 0.0], color: final_color },
-                Vertex { position: [x + s, y - s, 0.0], color: final_color },
-                Vertex { position: [x + s, y + s, 0.0], color: final_color },
-                Vertex { position: [x - s, y + s, 0.0], color: final_color },
+                Vertex { position: [x - s, y - s, 0.0], color: final_color, uv: [0.0, 0.0], uv: [0.5, 0.5] },
+                Vertex { position: [x + s, y - s, 0.0], color: final_color, uv: [1.0, 0.0], uv: [0.5, 0.5] },
+                Vertex { position: [x - s, y + s, 0.0], color: final_color, uv: [0.0, 1.0], uv: [0.5, 0.5] },
+                Vertex { position: [x + s, y - s, 0.0], color: final_color, uv: [1.0, 0.0], uv: [0.5, 0.5] },
+                Vertex { position: [x + s, y + s, 0.0], color: final_color, uv: [1.0, 1.0], uv: [0.5, 0.5] },
+                Vertex { position: [x - s, y + s, 0.0], color: final_color, uv: [0.0, 1.0], uv: [0.5, 0.5] },
             ]);
 
             // Add memory fragment visualization for high-consciousness llamas
@@ -6798,12 +6921,12 @@ impl ChaosEngine {
                     ];
 
                     vertices.extend([
-                        Vertex { position: [mem_x - mem_s, mem_y - mem_s, 0.0], color: memory_color },
-                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color },
-                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color },
-                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color },
-                        Vertex { position: [mem_x + mem_s, mem_y + mem_s, 0.0], color: memory_color },
-                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color },
+                        Vertex { position: [mem_x - mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [0.0, 0.0], uv: [0.5, 0.5] },
+                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [1.0, 0.0], uv: [0.5, 0.5] },
+                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [0.0, 1.0], uv: [0.5, 0.5] },
+                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [1.0, 0.0], uv: [0.5, 0.5] },
+                        Vertex { position: [mem_x + mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [1.0, 1.0], uv: [0.5, 0.5] },
+                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [0.0, 1.0], uv: [0.5, 0.5] },
                     ]);
                 }
             }
@@ -6834,12 +6957,12 @@ impl ChaosEngine {
 
             // Crystal rendered as a diamond shape
             vertices.extend([
-                Vertex { position: [x, y - s, 0.0], color: crystal_color_array },
-                Vertex { position: [x + s, y, 0.0], color: crystal_color_array },
-                Vertex { position: [x, y + s, 0.0], color: crystal_color_array },
-                Vertex { position: [x, y - s, 0.0], color: crystal_color_array },
-                Vertex { position: [x - s, y, 0.0], color: crystal_color_array },
-                Vertex { position: [x, y + s, 0.0], color: crystal_color_array },
+                Vertex { position: [x, y - s, 0.0], color: crystal_color_array, uv: [0.5, 0.0], uv: [0.5, 0.5] },
+                Vertex { position: [x + s, y, 0.0], color: crystal_color_array, uv: [0.5, 0.5] },
+                Vertex { position: [x, y + s, 0.0], color: crystal_color_array, uv: [0.5, 0.5] },
+                Vertex { position: [x, y - s, 0.0], color: crystal_color_array, uv: [0.5, 0.0], uv: [0.5, 0.5] },
+                Vertex { position: [x - s, y, 0.0], color: crystal_color_array, uv: [0.5, 0.5] },
+                Vertex { position: [x, y + s, 0.0], color: crystal_color_array, uv: [0.5, 0.5] },
             ]);
 
             // Add harvest radius visualization for high-energy crystals
@@ -6858,9 +6981,9 @@ impl ChaosEngine {
                     let angle2 = ((i + 1) as f32 / 6.0) * std::f32::consts::TAU;
 
                     vertices.extend([
-                        Vertex { position: [x, y, 0.0], color: radius_color },
-                        Vertex { position: [x + angle1.cos() * radius_size, y + angle1.sin() * radius_size, 0.0], color: radius_color },
-                        Vertex { position: [x + angle2.cos() * radius_size, y + angle2.sin() * radius_size, 0.0], color: radius_color },
+                        Vertex { position: [x, y, 0.0], color: radius_color, uv: [0.5, 0.5] },
+                        Vertex { position: [x + angle1.cos() * radius_size, y + angle1.sin() * radius_size, 0.0], color: radius_color, uv: [0.5, 0.5] },
+                        Vertex { position: [x + angle2.cos() * radius_size, y + angle2.sin() * radius_size, 0.0], color: radius_color, uv: [0.5, 0.5] },
                     ]);
                 }
             }
@@ -6893,12 +7016,12 @@ impl ChaosEngine {
             let offset2 = s * 0.3;
 
             vertices.extend([
-                Vertex { position: [x - s, y - offset1, 0.0], color: tear_color_array },
-                Vertex { position: [x + s, y + offset2, 0.0], color: tear_color_array },
-                Vertex { position: [x - offset2, y + s, 0.0], color: tear_color_array },
-                Vertex { position: [x + offset1, y - s, 0.0], color: tear_color_array },
-                Vertex { position: [x + s, y - offset1, 0.0], color: tear_color_array },
-                Vertex { position: [x - s, y + offset2, 0.0], color: tear_color_array },
+                Vertex { position: [x - s, y - offset1, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
+                Vertex { position: [x + s, y + offset2, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
+                Vertex { position: [x - offset2, y + s, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
+                Vertex { position: [x + offset1, y - s, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
+                Vertex { position: [x + s, y - offset1, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
+                Vertex { position: [x - s, y + offset2, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
             ]);
         }
 
@@ -6937,9 +7060,9 @@ impl ChaosEngine {
                 let angle2 = ((i + 1) as f32 / 8.0) * std::f32::consts::TAU;
 
                 vertices.extend([
-                    Vertex { position: [x, y, 0.0], color: zone_color_array },
-                    Vertex { position: [x + angle1.cos() * r, y + angle1.sin() * r, 0.0], color: zone_color_array },
-                    Vertex { position: [x + angle2.cos() * r, y + angle2.sin() * r, 0.0], color: zone_color_array },
+                    Vertex { position: [x, y, 0.0], color: zone_color_array, uv: [0.5, 0.5] },
+                    Vertex { position: [x + angle1.cos() * r, y + angle1.sin() * r, 0.0], color: zone_color_array, uv: [0.5, 0.5] },
+                    Vertex { position: [x + angle2.cos() * r, y + angle2.sin() * r, 0.0], color: zone_color_array, uv: [0.5, 0.5] },
                 ]);
             }
         }
@@ -6983,9 +7106,9 @@ impl ChaosEngine {
                             let angle2 = ((i + 1) as f32 / circle_segments as f32) * std::f32::consts::TAU;
 
                             vertices.extend([
-                                Vertex { position: [x, y, 0.0], color: comm_color_array },
-                                Vertex { position: [x + angle1.cos() * s, y + angle1.sin() * s, 0.0], color: comm_color_array },
-                                Vertex { position: [x + angle2.cos() * s, y + angle2.sin() * s, 0.0], color: comm_color_array },
+                                Vertex { position: [x, y, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
+                                Vertex { position: [x + angle1.cos() * s, y + angle1.sin() * s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
+                                Vertex { position: [x + angle2.cos() * s, y + angle2.sin() * s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
                             ]);
                         }
 
@@ -7000,9 +7123,9 @@ impl ChaosEngine {
                             let angle2 = ((i + 1) as f32 / circle_segments as f32) * std::f32::consts::TAU;
 
                             vertices.extend([
-                                Vertex { position: [x + angle1.cos() * s, y + angle1.sin() * s, 0.0], color: ring_color },
-                                Vertex { position: [x + angle1.cos() * outer_s, y + angle1.sin() * outer_s, 0.0], color: ring_color },
-                                Vertex { position: [x + angle2.cos() * outer_s, y + angle2.sin() * outer_s, 0.0], color: ring_color },
+                                Vertex { position: [x + angle1.cos() * s, y + angle1.sin() * s, 0.0], color: ring_color, uv: [0.5, 0.5] },
+                                Vertex { position: [x + angle1.cos() * outer_s, y + angle1.sin() * outer_s, 0.0], color: ring_color, uv: [0.5, 0.5] },
+                                Vertex { position: [x + angle2.cos() * outer_s, y + angle2.sin() * outer_s, 0.0], color: ring_color, uv: [0.5, 0.5] },
                             ]);
                         }
                     }
@@ -7027,12 +7150,12 @@ impl ChaosEngine {
                                     let perpy = dx / length * line_width;
 
                                     vertices.extend([
-                                        Vertex { position: [x1 + perpx, y1 + perpy, 0.0], color: comm_color_array },
-                                        Vertex { position: [x1 - perpx, y1 - perpy, 0.0], color: comm_color_array },
-                                        Vertex { position: [x2 + perpx, y2 + perpy, 0.0], color: comm_color_array },
-                                        Vertex { position: [x1 - perpx, y1 - perpy, 0.0], color: comm_color_array },
-                                        Vertex { position: [x2 - perpx, y2 - perpy, 0.0], color: comm_color_array },
-                                        Vertex { position: [x2 + perpx, y2 + perpy, 0.0], color: comm_color_array },
+                                        Vertex { position: [x1 + perpx, y1 + perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
+                                        Vertex { position: [x1 - perpx, y1 - perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
+                                        Vertex { position: [x2 + perpx, y2 + perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
+                                        Vertex { position: [x1 - perpx, y1 - perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
+                                        Vertex { position: [x2 - perpx, y2 - perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
+                                        Vertex { position: [x2 + perpx, y2 + perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
                                     ]);
                                 }
                             }
@@ -7041,15 +7164,15 @@ impl ChaosEngine {
                     _ => {
                         // Default: simple diamond shape for other types
                         vertices.extend([
-                            Vertex { position: [x, y + s, 0.0], color: comm_color_array },     // Top
-                            Vertex { position: [x - s, y, 0.0], color: comm_color_array },     // Left
-                            Vertex { position: [x + s, y, 0.0], color: comm_color_array },     // Right
-                            Vertex { position: [x, y + s, 0.0], color: comm_color_array },     // Top
-                            Vertex { position: [x + s, y, 0.0], color: comm_color_array },     // Right
-                            Vertex { position: [x, y - s, 0.0], color: comm_color_array },     // Bottom
-                            Vertex { position: [x, y - s, 0.0], color: comm_color_array },     // Bottom
-                            Vertex { position: [x - s, y, 0.0], color: comm_color_array },     // Left
-                            Vertex { position: [x, y + s, 0.0], color: comm_color_array },     // Top
+                            Vertex { position: [x, y + s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Top
+                            Vertex { position: [x - s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Left
+                            Vertex { position: [x + s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Right
+                            Vertex { position: [x, y + s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Top
+                            Vertex { position: [x + s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Right
+                            Vertex { position: [x, y - s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Bottom
+                            Vertex { position: [x, y - s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Bottom
+                            Vertex { position: [x - s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Left
+                            Vertex { position: [x, y + s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Top
                         ]);
                     }
                 }
@@ -7102,12 +7225,12 @@ impl ChaosEngine {
                         let norm_y = dx / length * line_width;
 
                         vertices.extend([
-                            Vertex { position: [x1 - norm_x, y1 - norm_y, 0.0], color: final_connection_color },
-                            Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: final_connection_color },
-                            Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: final_connection_color },
-                            Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: final_connection_color },
-                            Vertex { position: [x2 + norm_x, y2 + norm_y, 0.0], color: final_connection_color },
-                            Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: final_connection_color },
+                            Vertex { position: [x1 - norm_x, y1 - norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
+                            Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
+                            Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
+                            Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
+                            Vertex { position: [x2 + norm_x, y2 + norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
+                            Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
                         ]);
                     }
                 }
@@ -7126,12 +7249,12 @@ impl ChaosEngine {
             ];
 
             vertices.extend([
-                Vertex { position: [center_x - center_size, center_y - center_size, 0.0], color: center_color },
-                Vertex { position: [center_x + center_size, center_y - center_size, 0.0], color: center_color },
-                Vertex { position: [center_x - center_size, center_y + center_size, 0.0], color: center_color },
-                Vertex { position: [center_x + center_size, center_y - center_size, 0.0], color: center_color },
-                Vertex { position: [center_x + center_size, center_y + center_size, 0.0], color: center_color },
-                Vertex { position: [center_x - center_size, center_y + center_size, 0.0], color: center_color },
+                Vertex { position: [center_x - center_size, center_y - center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
+                Vertex { position: [center_x + center_size, center_y - center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
+                Vertex { position: [center_x - center_size, center_y + center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
+                Vertex { position: [center_x + center_size, center_y - center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
+                Vertex { position: [center_x + center_size, center_y + center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
+                Vertex { position: [center_x - center_size, center_y + center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
             ]);
         }
 
@@ -7165,12 +7288,12 @@ impl ChaosEngine {
                     let norm_y = dx / length * beam_width;
 
                     vertices.extend([
-                        Vertex { position: [x1 - norm_x, y1 - norm_y, 0.0], color: beam_color },
-                        Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: beam_color },
-                        Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: beam_color },
-                        Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: beam_color },
-                        Vertex { position: [x2 + norm_x, y2 + norm_y, 0.0], color: beam_color },
-                        Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: beam_color },
+                        Vertex { position: [x1 - norm_x, y1 - norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
+                        Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
+                        Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
+                        Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
+                        Vertex { position: [x2 + norm_x, y2 + norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
+                        Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
                     ]);
                 }
             }
@@ -7199,9 +7322,9 @@ impl ChaosEngine {
                 let angle2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
 
                 vertices.extend([
-                    Vertex { position: [conflict_x, conflict_y, 0.0], color: war_color },
-                    Vertex { position: [conflict_x + angle1.cos() * conflict_radius, conflict_y + angle1.sin() * conflict_radius, 0.0], color: war_color },
-                    Vertex { position: [conflict_x + angle2.cos() * conflict_radius, conflict_y + angle2.sin() * conflict_radius, 0.0], color: war_color },
+                    Vertex { position: [conflict_x, conflict_y, 0.0], color: war_color, uv: [0.5, 0.5] },
+                    Vertex { position: [conflict_x + angle1.cos() * conflict_radius, conflict_y + angle1.sin() * conflict_radius, 0.0], color: war_color, uv: [0.5, 0.5] },
+                    Vertex { position: [conflict_x + angle2.cos() * conflict_radius, conflict_y + angle2.sin() * conflict_radius, 0.0], color: war_color, uv: [0.5, 0.5] },
                 ]);
             }
         }
@@ -7228,9 +7351,9 @@ impl ChaosEngine {
             let angle2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU + rotation;
 
             vertices.extend([
-                Vertex { position: [obs_x, obs_y, 0.0], color: eye_color },
-                Vertex { position: [obs_x + angle1.cos() * obs_size, obs_y + angle1.sin() * obs_size, 0.0], color: eye_color },
-                Vertex { position: [obs_x + angle2.cos() * obs_size, obs_y + angle2.sin() * obs_size, 0.0], color: eye_color },
+                Vertex { position: [obs_x, obs_y, 0.0], color: eye_color, uv: [0.5, 0.5] },
+                Vertex { position: [obs_x + angle1.cos() * obs_size, obs_y + angle1.sin() * obs_size, 0.0], color: eye_color, uv: [0.5, 0.5] },
+                Vertex { position: [obs_x + angle2.cos() * obs_size, obs_y + angle2.sin() * obs_size, 0.0], color: eye_color, uv: [0.5, 0.5] },
             ]);
         }
 
@@ -7249,9 +7372,9 @@ impl ChaosEngine {
                 let next_angle = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
 
                 vertices.extend([
-                    Vertex { position: [obs_x + angle.cos() * awareness_radius * 0.9, obs_y + angle.sin() * awareness_radius * 0.9, 0.0], color: awareness_color },
-                    Vertex { position: [obs_x + angle.cos() * awareness_radius, obs_y + angle.sin() * awareness_radius, 0.0], color: awareness_color },
-                    Vertex { position: [obs_x + next_angle.cos() * awareness_radius, obs_y + next_angle.sin() * awareness_radius, 0.0], color: awareness_color },
+                    Vertex { position: [obs_x + angle.cos() * awareness_radius * 0.9, obs_y + angle.sin() * awareness_radius * 0.9, 0.0], color: awareness_color, uv: [0.5, 0.5] },
+                    Vertex { position: [obs_x + angle.cos() * awareness_radius, obs_y + angle.sin() * awareness_radius, 0.0], color: awareness_color, uv: [0.5, 0.5] },
+                    Vertex { position: [obs_x + next_angle.cos() * awareness_radius, obs_y + next_angle.sin() * awareness_radius, 0.0], color: awareness_color, uv: [0.5, 0.5] },
                 ]);
             }
         }
@@ -7290,17 +7413,43 @@ impl ChaosEngine {
                         let angle2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
 
                         vertices.extend([
-                            Vertex { position: [x + angle1.cos() * aura_size * 0.8, y + angle1.sin() * aura_size * 0.8, 0.0], color: final_aura_color },
-                            Vertex { position: [x + angle1.cos() * aura_size, y + angle1.sin() * aura_size, 0.0], color: final_aura_color },
-                            Vertex { position: [x + angle2.cos() * aura_size, y + angle2.sin() * aura_size, 0.0], color: final_aura_color },
+                            Vertex { position: [x + angle1.cos() * aura_size * 0.8, y + angle1.sin() * aura_size * 0.8, 0.0], color: final_aura_color, uv: [0.5, 0.5] },
+                            Vertex { position: [x + angle1.cos() * aura_size, y + angle1.sin() * aura_size, 0.0], color: final_aura_color, uv: [0.5, 0.5] },
+                            Vertex { position: [x + angle2.cos() * aura_size, y + angle2.sin() * aura_size, 0.0], color: final_aura_color, uv: [0.5, 0.5] },
                         ]);
                     }
                 }
             }
         }
 
+        // Ensure buffer capacity and validate vertex count with dynamic management
         if !vertices.is_empty() {
-            self.queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&vertices));
+            if let Err(e) = self.dynamic_vertex_buffer.ensure_capacity(&self.device, vertices.len()) {
+                eprintln!("Failed to ensure buffer capacity: {}", e);
+                return Err(SurfaceError::Lost);
+            }
+
+            let validated_vertex_count = match self.dynamic_vertex_buffer.validate_vertex_count(vertices.len()) {
+                Ok(count) => count,
+                Err(e) => {
+                    eprintln!("Vertex validation failed: {}", e);
+                    return Err(SurfaceError::Lost);
+                }
+            };
+
+            // Truncate vertices if validation reduced the count
+            if validated_vertex_count < vertices.len() {
+                vertices.truncate(validated_vertex_count);
+                println!("Vertices truncated from {} to {} due to capacity limits",
+                          vertices.len(), validated_vertex_count);
+            }
+
+            if let Some(buffer) = self.dynamic_vertex_buffer.get_buffer() {
+                self.queue.write_buffer(buffer, 0, bytemuck::cast_slice(&vertices));
+            } else {
+                eprintln!("No vertex buffer available for rendering");
+                return Err(SurfaceError::Lost);
+            }
         }
 
         let mut encoder = self.device.create_command_encoder(&CommandEncoderDescriptor {
@@ -7329,10 +7478,13 @@ impl ChaosEngine {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-
             if !vertices.is_empty() {
-                render_pass.draw(0..vertices.len() as u32, 0..1);
+                if let Some(buffer) = self.dynamic_vertex_buffer.get_buffer() {
+                    render_pass.set_vertex_buffer(0, buffer.slice(..));
+                    render_pass.draw(0..vertices.len() as u32, 0..1);
+                } else {
+                    println!("No vertex buffer available for render pass");
+                }
             }
         }
 
