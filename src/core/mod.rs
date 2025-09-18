@@ -14,11 +14,11 @@ use crate::mathematics::BeatEngine;
 use crate::reality::PsychedelicRenderer;
 use crate::input::ResonanceEffect;
 
-pub struct ChaosEngine {
+pub struct ChaosEngine<'a> {
     device: Device,
     queue: Queue,
     config: SurfaceConfiguration,
-    surface: Surface,
+    surface: Surface<'a>,
     size: winit::dpi::PhysicalSize<u32>,
 
     // Core systems
@@ -32,14 +32,16 @@ pub struct ChaosEngine {
     consciousness_level: f32,
 }
 
-impl ChaosEngine {
-    pub async fn new(window: &Window) -> Result<Self> {
+impl<'a> ChaosEngine<'a> {
+    pub async fn new(window: &'a Window) -> Result<Self> {
         let size = window.inner_size();
 
         // Initialize GPU madness
         let instance = Instance::new(InstanceDescriptor {
             backends: Backends::all(),
+            flags: InstanceFlags::default(),
             dx12_shader_compiler: Default::default(),
+            gles_minor_version: Gles3MinorVersion::Automatic,
         });
 
         let surface = unsafe { instance.create_surface(&window) }?;
@@ -56,8 +58,8 @@ impl ChaosEngine {
         let (device, queue) = adapter
             .request_device(
                 &DeviceDescriptor {
-                    features: Features::empty(),
-                    limits: Limits::default(),
+                    required_features: Features::empty(),
+                    required_limits: Limits::default(),
                     label: None,
                 },
                 None,
@@ -80,6 +82,7 @@ impl ChaosEngine {
             present_mode: PresentMode::Fifo, // Vsync for smooth chaos
             alpha_mode: surface_caps.alpha_modes[0],
             view_formats: vec![],
+            desired_maximum_frame_latency: 2,
         };
         surface.configure(&device, &config);
 

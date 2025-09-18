@@ -99,7 +99,11 @@ impl EpilepsyWarningScreen {
                         }
                         WindowEvent::KeyboardInput { event: KeyEvent { logical_key: key, state: ElementState::Pressed, .. }, .. } => {
                             match key {
-                                Key::Named(NamedKey::Enter) | Key::Character(c) if c == "c" || c == "C" => {
+                                Key::Named(NamedKey::Enter) => {
+                                    response = WarningResponse::Continue;
+                                    elwt.exit();
+                                }
+                                Key::Character(c) if c == "c" || c == "C" => {
                                     response = WarningResponse::Continue;
                                     elwt.exit();
                                 }
@@ -107,7 +111,11 @@ impl EpilepsyWarningScreen {
                                     response = WarningResponse::SafetyMode;
                                     elwt.exit();
                                 }
-                                Key::Named(NamedKey::Escape) | Key::Character(c) if c == "e" || c == "E" => {
+                                Key::Named(NamedKey::Escape) => {
+                                    response = WarningResponse::Exit;
+                                    elwt.exit();
+                                }
+                                Key::Character(c) if c == "e" || c == "E" => {
                                     response = WarningResponse::Exit;
                                     elwt.exit();
                                 }

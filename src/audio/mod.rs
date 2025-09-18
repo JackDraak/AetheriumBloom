@@ -185,7 +185,7 @@ impl AudioControls {
 }
 
 /// Audio environment types - from zen to full EDM chaos
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum AudioEnvironment {
     Environmental,    // Nature sounds, ambient textures
     Meditative,      // New age, massage therapy vibes

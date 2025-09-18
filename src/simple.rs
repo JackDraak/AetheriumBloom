@@ -6296,7 +6296,7 @@ impl ChaosEngine {
 
         let shader = device.create_shader_module(ShaderModuleDescriptor {
             label: Some("Shader"),
-            source: ShaderSource::Wgsl(include_str!("simple_shader.wgsl").into()),
+            source: ShaderSource::Wgsl(include_str!("reality/shaders/psychedelic.wgsl").into()),
         });
 
         let render_pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {

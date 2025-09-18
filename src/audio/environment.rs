@@ -29,7 +29,7 @@ pub struct AudioEnvironmentZones {
 struct TerritorialZone {
     center: Vec2,
     radius: f32,
-    dominant_species: Option<crate::consciousness::LlamaSpecies>,
+    dominant_species: Option<crate::core::events::LlamaSpecies>,
     consciousness_density: f32,
     territory_age: f32,
     audio_signature: TerritoryAudioSignature,

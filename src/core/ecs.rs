@@ -54,14 +54,17 @@ impl World {
             .get_mut(entity)
     }
 
-    pub fn query<T: 'static>(&self) -> impl Iterator<Item = (EntityId, &T)> {
+    pub fn query<T: 'static>(&self) -> Vec<(EntityId, &T)> {
         let type_id = TypeId::of::<T>();
-        let empty_vec = ComponentVec::<T>::new();
-        let storage = self.components.get(&type_id)
-            .map(|s| s.as_any().downcast_ref::<ComponentVec<T>>().unwrap())
-            .unwrap_or(&empty_vec);
-
-        storage.iter()
+        if let Some(storage) = self.components.get(&type_id) {
+            storage.as_any()
+                .downcast_ref::<ComponentVec<T>>()
+                .unwrap()
+                .iter()
+                .collect()
+        } else {
+            Vec::new()
+        }
     }
 
     pub fn query_mut<T: 'static>(&mut self) -> Box<dyn Iterator<Item = (EntityId, &mut T)> + '_> {
