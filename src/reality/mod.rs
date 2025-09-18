@@ -4,10 +4,8 @@ pub mod colors;
 pub mod chaos;
 pub mod buffer_manager;
 
-use anyhow::Result;
 use wgpu::*;
 use crate::consciousness::LlamaRenderData;
-use crate::core::events::LlamaSpecies;
 
 pub use renderer::PsychedelicRenderer;
 pub use colors::ColorConsciousness;
@@ -30,13 +28,19 @@ pub struct Vertex {
     pub position: [f32; 3],
     pub color: [f32; 3],
     pub uv: [f32; 2],
+    pub species_id: f32,     // 0=Disco, 1=Quantum, 2=Hypno, 3=Fractal, 4=BassDrop
+    pub consciousness: f32,   // Individual consciousness level
+    pub trip_intensity: f32,  // Psychedelic trip intensity
 }
 
 impl Vertex {
-    const ATTRIBS: [VertexAttribute; 3] = vertex_attr_array![
-        0 => Float32x3,
-        1 => Float32x3,
-        2 => Float32x2
+    const ATTRIBS: [VertexAttribute; 6] = vertex_attr_array![
+        0 => Float32x3,  // position
+        1 => Float32x3,  // color
+        2 => Float32x2,  // uv
+        3 => Float32,    // species_id
+        4 => Float32,    // consciousness
+        5 => Float32     // trip_intensity
     ];
 
     pub fn desc<'a>() -> VertexBufferLayout<'a> {
@@ -56,11 +60,19 @@ pub struct UniformData {
     pub consciousness_level: f32,
     pub beat_intensity: f32,
     pub screen_resolution: [f32; 2],
-    pub _padding: [f32; 2],
+    pub beat_frequency: f32,
+    pub cosmic_phase: f32,
 }
 
-pub fn create_llama_geometry(position: glam::Vec2, size: f32, color: glam::Vec3) -> Vec<Vertex> {
-    // Create a simple quad for each llama
+pub fn create_llama_geometry(
+    position: glam::Vec2,
+    size: f32,
+    color: glam::Vec3,
+    species_id: f32,
+    consciousness: f32,
+    trip_intensity: f32
+) -> Vec<Vertex> {
+    // Create a simple quad for each llama with full psychedelic data
     let half_size = size * 0.5;
 
     vec![
@@ -69,32 +81,50 @@ pub fn create_llama_geometry(position: glam::Vec2, size: f32, color: glam::Vec3)
             position: [position.x - half_size, position.y - half_size, 0.0],
             color: [color.x, color.y, color.z],
             uv: [0.0, 0.0],
+            species_id,
+            consciousness,
+            trip_intensity,
         },
         Vertex {
             position: [position.x + half_size, position.y - half_size, 0.0],
             color: [color.x, color.y, color.z],
             uv: [1.0, 0.0],
+            species_id,
+            consciousness,
+            trip_intensity,
         },
         Vertex {
             position: [position.x - half_size, position.y + half_size, 0.0],
             color: [color.x, color.y, color.z],
             uv: [0.0, 1.0],
+            species_id,
+            consciousness,
+            trip_intensity,
         },
         // Triangle 2
         Vertex {
             position: [position.x + half_size, position.y - half_size, 0.0],
             color: [color.x, color.y, color.z],
             uv: [1.0, 0.0],
+            species_id,
+            consciousness,
+            trip_intensity,
         },
         Vertex {
             position: [position.x + half_size, position.y + half_size, 0.0],
             color: [color.x, color.y, color.z],
             uv: [1.0, 1.0],
+            species_id,
+            consciousness,
+            trip_intensity,
         },
         Vertex {
             position: [position.x - half_size, position.y + half_size, 0.0],
             color: [color.x, color.y, color.z],
             uv: [0.0, 1.0],
+            species_id,
+            consciousness,
+            trip_intensity,
         },
     ]
 }

@@ -6890,13 +6890,62 @@ impl ChaosEngine {
                 (color.z + emotional_tint * 0.5).min(1.0),
             ];
 
+            // Map species to shader ID for psychedelic effects
+            let species_id = match llama.species {
+                SpeciesType::DiscoLlama => 0.0,    // Disco effects
+                SpeciesType::QuantumSheep => 1.0,  // Quantum glitches
+                SpeciesType::HypnoCamel => 2.0,    // Hypnotic spirals
+            };
+
             vertices.extend([
-                Vertex { position: [x - s, y - s, 0.0], color: final_color, uv: [0.0, 0.0] },
-                Vertex { position: [x + s, y - s, 0.0], color: final_color, uv: [1.0, 0.0] },
-                Vertex { position: [x - s, y + s, 0.0], color: final_color, uv: [0.0, 1.0] },
-                Vertex { position: [x + s, y - s, 0.0], color: final_color, uv: [1.0, 0.0] },
-                Vertex { position: [x + s, y + s, 0.0], color: final_color, uv: [1.0, 1.0] },
-                Vertex { position: [x - s, y + s, 0.0], color: final_color, uv: [0.0, 1.0] },
+                Vertex {
+                    position: [x - s, y - s, 0.0],
+                    color: final_color,
+                    uv: [0.0, 0.0],
+                    species_id,
+                    consciousness: llama.awareness_level,
+                    trip_intensity: llama.trip_intensity,
+                },
+                Vertex {
+                    position: [x + s, y - s, 0.0],
+                    color: final_color,
+                    uv: [1.0, 0.0],
+                    species_id,
+                    consciousness: llama.awareness_level,
+                    trip_intensity: llama.trip_intensity,
+                },
+                Vertex {
+                    position: [x - s, y + s, 0.0],
+                    color: final_color,
+                    uv: [0.0, 1.0],
+                    species_id,
+                    consciousness: llama.awareness_level,
+                    trip_intensity: llama.trip_intensity,
+                },
+                Vertex {
+                    position: [x + s, y - s, 0.0],
+                    color: final_color,
+                    uv: [1.0, 0.0],
+                    species_id,
+                    consciousness: llama.awareness_level,
+                    trip_intensity: llama.trip_intensity,
+                },
+                Vertex {
+                    position: [x + s, y + s, 0.0],
+                    color: final_color,
+                    uv: [1.0, 1.0],
+                    species_id,
+                    consciousness: llama.awareness_level,
+                    trip_intensity: llama.trip_intensity,
+                },
+                Vertex {
+                    position: [x - s, y + s, 0.0],
+                    color: final_color,
+                    uv: [0.0, 1.0],
+                    species_id,
+                    consciousness: llama.awareness_level,
+                    trip_intensity: llama.trip_intensity,
+                },
             ]);
 
             // Add memory fragment visualization for high-consciousness llamas
@@ -6913,13 +6962,56 @@ impl ChaosEngine {
                         color.z * mem_alpha,
                     ];
 
+                    // Memory fragments are fractal-like effects
                     vertices.extend([
-                        Vertex { position: [mem_x - mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [0.0, 0.0] },
-                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [1.0, 0.0] },
-                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [0.0, 1.0] },
-                        Vertex { position: [mem_x + mem_s, mem_y - mem_s, 0.0], color: memory_color, uv: [1.0, 0.0] },
-                        Vertex { position: [mem_x + mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [1.0, 1.0] },
-                        Vertex { position: [mem_x - mem_s, mem_y + mem_s, 0.0], color: memory_color, uv: [0.0, 1.0] },
+                        Vertex {
+                            position: [mem_x - mem_s, mem_y - mem_s, 0.0],
+                            color: memory_color,
+                            uv: [0.0, 0.0],
+                            species_id: 3.0, // Fractal effects for memory
+                            consciousness: llama.memory_intensity,
+                            trip_intensity: llama.trip_intensity * 0.8,
+                        },
+                        Vertex {
+                            position: [mem_x + mem_s, mem_y - mem_s, 0.0],
+                            color: memory_color,
+                            uv: [1.0, 0.0],
+                            species_id: 3.0,
+                            consciousness: llama.memory_intensity,
+                            trip_intensity: llama.trip_intensity * 0.8,
+                        },
+                        Vertex {
+                            position: [mem_x - mem_s, mem_y + mem_s, 0.0],
+                            color: memory_color,
+                            uv: [0.0, 1.0],
+                            species_id: 3.0,
+                            consciousness: llama.memory_intensity,
+                            trip_intensity: llama.trip_intensity * 0.8,
+                        },
+                        Vertex {
+                            position: [mem_x + mem_s, mem_y - mem_s, 0.0],
+                            color: memory_color,
+                            uv: [1.0, 0.0],
+                            species_id: 3.0,
+                            consciousness: llama.memory_intensity,
+                            trip_intensity: llama.trip_intensity * 0.8,
+                        },
+                        Vertex {
+                            position: [mem_x + mem_s, mem_y + mem_s, 0.0],
+                            color: memory_color,
+                            uv: [1.0, 1.0],
+                            species_id: 3.0,
+                            consciousness: llama.memory_intensity,
+                            trip_intensity: llama.trip_intensity * 0.8,
+                        },
+                        Vertex {
+                            position: [mem_x - mem_s, mem_y + mem_s, 0.0],
+                            color: memory_color,
+                            uv: [0.0, 1.0],
+                            species_id: 3.0,
+                            consciousness: llama.memory_intensity,
+                            trip_intensity: llama.trip_intensity * 0.8,
+                        },
                     ]);
                 }
             }
@@ -6948,14 +7040,56 @@ impl ChaosEngine {
 
             let crystal_color_array = [safe_crystal_color.x, safe_crystal_color.y, safe_crystal_color.z];
 
-            // Crystal rendered as a diamond shape
+            // Crystal rendered as a diamond shape with fractal effects
             vertices.extend([
-                Vertex { position: [x, y - s, 0.0], color: crystal_color_array, uv: [0.5, 0.0] },
-                Vertex { position: [x + s, y, 0.0], color: crystal_color_array, uv: [1.0, 0.5] },
-                Vertex { position: [x, y + s, 0.0], color: crystal_color_array, uv: [0.5, 1.0] },
-                Vertex { position: [x, y - s, 0.0], color: crystal_color_array, uv: [0.5, 0.0] },
-                Vertex { position: [x - s, y, 0.0], color: crystal_color_array, uv: [0.0, 0.5] },
-                Vertex { position: [x, y + s, 0.0], color: crystal_color_array, uv: [0.5, 1.0] },
+                Vertex {
+                    position: [x, y - s, 0.0],
+                    color: crystal_color_array,
+                    uv: [0.5, 0.0],
+                    species_id: 3.0, // Fractal effects for crystals
+                    consciousness: crystal.consciousness_energy,
+                    trip_intensity: crystal.consciousness_energy * 0.5,
+                },
+                Vertex {
+                    position: [x + s, y, 0.0],
+                    color: crystal_color_array,
+                    uv: [1.0, 0.5],
+                    species_id: 3.0,
+                    consciousness: crystal.consciousness_energy,
+                    trip_intensity: crystal.consciousness_energy * 0.5,
+                },
+                Vertex {
+                    position: [x, y + s, 0.0],
+                    color: crystal_color_array,
+                    uv: [0.5, 1.0],
+                    species_id: 3.0,
+                    consciousness: crystal.consciousness_energy,
+                    trip_intensity: crystal.consciousness_energy * 0.5,
+                },
+                Vertex {
+                    position: [x, y - s, 0.0],
+                    color: crystal_color_array,
+                    uv: [0.5, 0.0],
+                    species_id: 3.0,
+                    consciousness: crystal.consciousness_energy,
+                    trip_intensity: crystal.consciousness_energy * 0.5,
+                },
+                Vertex {
+                    position: [x - s, y, 0.0],
+                    color: crystal_color_array,
+                    uv: [0.0, 0.5],
+                    species_id: 3.0,
+                    consciousness: crystal.consciousness_energy,
+                    trip_intensity: crystal.consciousness_energy * 0.5,
+                },
+                Vertex {
+                    position: [x, y + s, 0.0],
+                    color: crystal_color_array,
+                    uv: [0.5, 1.0],
+                    species_id: 3.0,
+                    consciousness: crystal.consciousness_energy,
+                    trip_intensity: crystal.consciousness_energy * 0.5,
+                },
             ]);
 
             // Add harvest radius visualization for high-energy crystals
@@ -6974,9 +7108,30 @@ impl ChaosEngine {
                     let angle2 = ((i + 1) as f32 / 6.0) * std::f32::consts::TAU;
 
                     vertices.extend([
-                        Vertex { position: [x, y, 0.0], color: radius_color, uv: [0.5, 0.5] },
-                        Vertex { position: [x + angle1.cos() * radius_size, y + angle1.sin() * radius_size, 0.0], color: radius_color, uv: [0.5, 0.5] },
-                        Vertex { position: [x + angle2.cos() * radius_size, y + angle2.sin() * radius_size, 0.0], color: radius_color, uv: [0.5, 0.5] },
+                        Vertex {
+                            position: [x, y, 0.0],
+                            color: radius_color,
+                            uv: [0.5, 0.5],
+                            species_id: 3.0, // Crystal energy effects
+                            consciousness: crystal.consciousness_energy,
+                            trip_intensity: 1.0, // High intensity for energy fields
+                        },
+                        Vertex {
+                            position: [x + angle1.cos() * radius_size, y + angle1.sin() * radius_size, 0.0],
+                            color: radius_color,
+                            uv: [0.5, 0.5],
+                            species_id: 3.0,
+                            consciousness: crystal.consciousness_energy,
+                            trip_intensity: 1.0,
+                        },
+                        Vertex {
+                            position: [x + angle2.cos() * radius_size, y + angle2.sin() * radius_size, 0.0],
+                            color: radius_color,
+                            uv: [0.5, 0.5],
+                            species_id: 3.0,
+                            consciousness: crystal.consciousness_energy,
+                            trip_intensity: 1.0,
+                        },
                     ]);
                 }
             }
@@ -7008,13 +7163,56 @@ impl ChaosEngine {
             let offset1 = s * 0.6;
             let offset2 = s * 0.3;
 
+            // Reality tears use quantum glitch effects
             vertices.extend([
-                Vertex { position: [x - s, y - offset1, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
-                Vertex { position: [x + s, y + offset2, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
-                Vertex { position: [x - offset2, y + s, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
-                Vertex { position: [x + offset1, y - s, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
-                Vertex { position: [x + s, y - offset1, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
-                Vertex { position: [x - s, y + offset2, 0.0], color: tear_color_array, uv: [0.5, 0.5] },
+                Vertex {
+                    position: [x - s, y - offset1, 0.0],
+                    color: tear_color_array,
+                    uv: [0.5, 0.5],
+                    species_id: 1.0, // Quantum glitch effects
+                    consciousness: 1.0, // Maximum consciousness for reality tears
+                    trip_intensity: self.reality_distortion.emergence_amplification,
+                },
+                Vertex {
+                    position: [x + s, y + offset2, 0.0],
+                    color: tear_color_array,
+                    uv: [0.5, 0.5],
+                    species_id: 1.0,
+                    consciousness: 1.0,
+                    trip_intensity: self.reality_distortion.emergence_amplification,
+                },
+                Vertex {
+                    position: [x - offset2, y + s, 0.0],
+                    color: tear_color_array,
+                    uv: [0.5, 0.5],
+                    species_id: 1.0,
+                    consciousness: 1.0,
+                    trip_intensity: self.reality_distortion.emergence_amplification,
+                },
+                Vertex {
+                    position: [x + offset1, y - s, 0.0],
+                    color: tear_color_array,
+                    uv: [0.5, 0.5],
+                    species_id: 1.0,
+                    consciousness: 1.0,
+                    trip_intensity: self.reality_distortion.emergence_amplification,
+                },
+                Vertex {
+                    position: [x + s, y - offset1, 0.0],
+                    color: tear_color_array,
+                    uv: [0.5, 0.5],
+                    species_id: 1.0,
+                    consciousness: 1.0,
+                    trip_intensity: self.reality_distortion.emergence_amplification,
+                },
+                Vertex {
+                    position: [x - s, y + offset2, 0.0],
+                    color: tear_color_array,
+                    uv: [0.5, 0.5],
+                    species_id: 1.0,
+                    consciousness: 1.0,
+                    trip_intensity: self.reality_distortion.emergence_amplification,
+                },
             ]);
         }
 

@@ -1,5 +1,6 @@
 use anyhow::Result;
 use wgpu::*;
+use crate::core::events::LlamaSpecies;
 use crate::reality::{RenderData, Vertex, UniformData, create_llama_geometry, hsv_to_rgb, DynamicVertexBuffer, VertexBudgetManager, BufferConfig};
 
 pub struct PsychedelicRenderer {
@@ -44,10 +45,12 @@ impl PsychedelicRenderer {
                 module: &shader,
                 entry_point: "vs_main",
                 buffers: &[Vertex::desc()],
+                compilation_options: Default::default(),
             },
             fragment: Some(FragmentState {
                 module: &shader,
                 entry_point: "fs_main",
+                compilation_options: Default::default(),
                 targets: &[Some(ColorTargetState {
                     format: config.format,
                     blend: Some(BlendState::ALPHA_BLENDING),
@@ -146,8 +149,26 @@ impl PsychedelicRenderer {
                 0.7 + llama.trip_intensity * 0.3,
             );
 
+            // Convert species enum to shader ID
+            let species_id = match llama.species {
+                LlamaSpecies::Disco => 0.0,
+                LlamaSpecies::Quantum => 1.0,
+                LlamaSpecies::Hypno => 2.0,
+                LlamaSpecies::Fractal => 3.0,
+                LlamaSpecies::BassDrop => 4.0,
+            };
+
             let size = 10.0 + llama.trip_intensity * 5.0 + llama.reality_distortion * 10.0;
-            let llama_vertices = create_llama_geometry(llama.position, size, color);
+
+            // Use the new geometry function with full psychedelic data
+            let llama_vertices = create_llama_geometry(
+                llama.position,
+                size,
+                color,
+                species_id,
+                llama.trip_intensity,  // Use trip_intensity as individual consciousness
+                llama.reality_distortion  // Use reality_distortion as trip_intensity
+            );
             vertices.extend(llama_vertices);
         }
 
@@ -189,7 +210,8 @@ impl PsychedelicRenderer {
             consciousness_level: render_data.consciousness_level,
             beat_intensity: render_data.beat_intensity,
             screen_resolution: [1200.0, 800.0], // TODO: Get from config
-            _padding: [0.0, 0.0],
+            beat_frequency: 4.0 + render_data.beat_intensity * 8.0, // Dynamic beat frequency
+            cosmic_phase: (render_data.cosmic_time as f32 * 0.1) % (2.0 * std::f32::consts::PI), // Cosmic phase cycling
         };
 
         queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[uniform_data]));
