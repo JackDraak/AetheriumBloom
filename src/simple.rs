@@ -873,6 +873,102 @@ pub enum SpeciesType {
     HypnoCamel,
 }
 
+// PHASE 5: CONSCIOUSNESS MULTIPLICATION - "When One Mind Becomes Legion"
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ConsciousnessLevel {
+    Individual,    // Single entity consciousness
+    Pack,         // Small group collective (2-8 entities)
+    Hive,         // Large collective super-consciousness (9+ entities)
+    Meta,         // Transcendent awareness observer
+}
+
+#[derive(Debug, Clone)]
+pub struct ConsciousnessHierarchy {
+    pub level: ConsciousnessLevel,
+    pub members: Vec<usize>,           // Entity indices that belong to this consciousness
+    pub collective_strength: f32,      // Combined consciousness power
+    pub territory_control: f32,        // Territorial influence 0.0-1.0
+    pub war_efficiency: f32,           // Combat effectiveness modifier
+    pub hive_connection_strength: f32, // How strongly hive members are connected
+    pub absorption_capacity: f32,      // Ability to absorb other consciousness
+}
+
+#[derive(Debug, Clone)]
+pub struct WarfareState {
+    pub species_populations: [u32; 3],        // [DiscoLlama, QuantumSheep, HypnoCamel]
+    pub territorial_dominance: [f32; 3],      // Territory control per species 0.0-1.0
+    pub extinction_pressure: [f32; 3],        // Extinction threat level per species
+    pub consciousness_crystals_controlled: [u32; 3], // Resource control
+    pub active_conflicts: Vec<SpeciesConflict>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SpeciesConflict {
+    pub attacker_species: SpeciesType,
+    pub defender_species: SpeciesType,
+    pub conflict_intensity: f32,       // 0.0-1.0 intensity of the conflict
+    pub territory_contested: Vec2,     // Center point of contested territory
+    pub duration: f32,                 // How long the conflict has lasted
+    pub victory_threshold: f32,        // Consciousness advantage needed to win
+}
+
+#[derive(Debug, Clone)]
+pub struct HiveMind {
+    pub collective_id: usize,
+    pub member_entities: Vec<usize>,   // Indices of entities in the hive
+    pub collective_consciousness: f32,  // Combined consciousness level
+    pub hive_center: Vec2,             // Geometric center of the hive
+    pub connection_network: Vec<(usize, usize)>, // Pairs of connected entities
+    pub shared_memories: Vec<Vec2>,    // Collective memory fragments
+    pub collective_decision_weight: f32, // How much the hive influences individual decisions
+    pub emergence_timestamp: f32,      // When this hive mind formed
+}
+
+#[derive(Debug, Clone)]
+pub struct ConsciousnessPredation {
+    pub predator_id: usize,
+    pub prey_id: usize,
+    pub absorption_progress: f32,      // 0.0-1.0 progress of consumption
+    pub resistance_strength: f32,      // How much the prey is fighting back
+    pub visual_effect_intensity: f32,  // Visual feedback for absorption event
+}
+
+#[derive(Debug, Clone)]
+pub struct MetaConsciousnessObserver {
+    pub observer_position: Vec2,
+    pub awareness_radius: f32,         // How far the observer can see
+    pub intervention_power: f32,       // Ability to influence consciousness wars
+    pub observation_intensity: f32,    // Current focus level
+    pub last_intervention: f32,        // Time since last intervention
+    pub consciousness_analysis: ConsciousnessAnalysis,
+}
+
+#[derive(Debug, Clone)]
+pub struct ConsciousnessAnalysis {
+    pub total_individual_entities: u32,
+    pub total_pack_collectives: u32,
+    pub total_hive_minds: u32,
+    pub dominant_species: SpeciesType,
+    pub extinction_imminent: Option<SpeciesType>, // Species about to go extinct
+    pub consciousness_distribution: [f32; 3],     // Consciousness per species
+    pub warfare_intensity: f32,       // Overall conflict level
+    pub ecosystem_stability: f32,     // 0.0-1.0 stability measure
+}
+
+#[derive(Debug, Clone)]
+pub struct ConsciousnessMultiplicationSystem {
+    pub hierarchy_levels: Vec<ConsciousnessHierarchy>,
+    pub hive_minds: Vec<HiveMind>,
+    pub active_predations: Vec<ConsciousnessPredation>,
+    pub warfare_state: WarfareState,
+    pub meta_observer: MetaConsciousnessObserver,
+    pub evolution_pressure_accumulator: f32,
+    pub next_hive_id: usize,
+    pub consciousness_crystal_spawn_rate: f32,
+    pub territorial_conflict_threshold: f32,
+}
+
 #[derive(Debug, Clone)]
 pub struct AdvancedBeatEngine {
     pub primary_rhythm: f32,            // Core mathematical heartbeat
@@ -934,6 +1030,743 @@ impl AdvancedBeatEngine {
     }
 }
 
+impl ConsciousnessMultiplicationSystem {
+    fn new() -> Self {
+        Self {
+            hierarchy_levels: Vec::new(),
+            hive_minds: Vec::new(),
+            active_predations: Vec::new(),
+            warfare_state: WarfareState {
+                species_populations: [0, 0, 0],
+                territorial_dominance: [0.33, 0.33, 0.34], // Start balanced
+                extinction_pressure: [0.0, 0.0, 0.0],
+                consciousness_crystals_controlled: [0, 0, 0],
+                active_conflicts: Vec::new(),
+            },
+            meta_observer: MetaConsciousnessObserver {
+                observer_position: Vec2::new(600.0, 400.0), // Center of screen
+                awareness_radius: 800.0,
+                intervention_power: 1.0,
+                observation_intensity: 0.5,
+                last_intervention: 0.0,
+                consciousness_analysis: ConsciousnessAnalysis {
+                    total_individual_entities: 0,
+                    total_pack_collectives: 0,
+                    total_hive_minds: 0,
+                    dominant_species: SpeciesType::DiscoLlama,
+                    extinction_imminent: None,
+                    consciousness_distribution: [0.33, 0.33, 0.34],
+                    warfare_intensity: 0.0,
+                    ecosystem_stability: 1.0,
+                },
+            },
+            evolution_pressure_accumulator: 0.0,
+            next_hive_id: 1,
+            consciousness_crystal_spawn_rate: 1.0,
+            territorial_conflict_threshold: 0.7,
+        }
+    }
+
+    fn update(&mut self, dt: f32, llamas: &mut [Llama], cosmic_time: f32) {
+        // Update meta observer consciousness analysis
+        self.update_consciousness_analysis(llamas);
+
+        // Process consciousness hierarchy formation and dissolution
+        self.process_consciousness_hierarchies(llamas, dt);
+
+        // Handle hive mind emergence and collective behavior
+        self.process_hive_mind_emergence(llamas, dt, cosmic_time);
+
+        // Execute consciousness predation events
+        self.process_consciousness_predation(llamas, dt);
+
+        // Run species warfare and territorial conflicts
+        self.process_species_warfare(llamas, dt, cosmic_time);
+
+        // Apply evolution pressure and extinction dynamics
+        self.process_evolution_pressure(llamas, dt);
+
+        // Meta-consciousness observer interventions
+        self.process_meta_observer_interventions(llamas, dt, cosmic_time);
+
+        // Update warfare state and population tracking
+        self.update_warfare_state(llamas);
+    }
+
+    fn update_consciousness_analysis(&mut self, llamas: &[Llama]) {
+        let mut analysis = &mut self.meta_observer.consciousness_analysis;
+
+        // Count consciousness levels
+        analysis.total_individual_entities = llamas.iter()
+            .filter(|l| l.consciousness_level == ConsciousnessLevel::Individual)
+            .count() as u32;
+
+        analysis.total_pack_collectives = llamas.iter()
+            .filter(|l| l.consciousness_level == ConsciousnessLevel::Pack)
+            .count() as u32;
+
+        analysis.total_hive_minds = self.hive_minds.len() as u32;
+
+        // Calculate consciousness distribution by species
+        let mut species_consciousness = [0.0f32; 3];
+        let mut species_counts = [0u32; 3];
+
+        for llama in llamas {
+            let species_idx = match llama.species {
+                SpeciesType::DiscoLlama => 0,
+                SpeciesType::QuantumSheep => 1,
+                SpeciesType::HypnoCamel => 2,
+            };
+            species_consciousness[species_idx] += llama.consciousness;
+            species_counts[species_idx] += 1;
+        }
+
+        let total_consciousness: f32 = species_consciousness.iter().sum();
+        if total_consciousness > 0.0 {
+            analysis.consciousness_distribution = [
+                species_consciousness[0] / total_consciousness,
+                species_consciousness[1] / total_consciousness,
+                species_consciousness[2] / total_consciousness,
+            ];
+        }
+
+        // Determine dominant species
+        let max_consciousness_idx = analysis.consciousness_distribution
+            .iter()
+            .enumerate()
+            .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
+            .map(|(i, _)| i)
+            .unwrap_or(0);
+
+        analysis.dominant_species = match max_consciousness_idx {
+            0 => SpeciesType::DiscoLlama,
+            1 => SpeciesType::QuantumSheep,
+            _ => SpeciesType::HypnoCamel,
+        };
+
+        // Check for extinction threats
+        analysis.extinction_imminent = None;
+        for (i, &count) in species_counts.iter().enumerate() {
+            if count < 3 && count > 0 { // Less than 3 entities remaining
+                analysis.extinction_imminent = Some(match i {
+                    0 => SpeciesType::DiscoLlama,
+                    1 => SpeciesType::QuantumSheep,
+                    _ => SpeciesType::HypnoCamel,
+                });
+                break;
+            }
+        }
+
+        // Calculate warfare intensity
+        analysis.warfare_intensity = self.warfare_state.active_conflicts.len() as f32 * 0.2
+            + self.active_predations.len() as f32 * 0.1;
+        analysis.warfare_intensity = analysis.warfare_intensity.min(1.0);
+
+        // Calculate ecosystem stability
+        let consciousness_balance = 1.0 - (analysis.consciousness_distribution[0] - 0.33).abs()
+            - (analysis.consciousness_distribution[1] - 0.33).abs()
+            - (analysis.consciousness_distribution[2] - 0.33).abs();
+
+        analysis.ecosystem_stability = (consciousness_balance * 0.6 + (1.0 - analysis.warfare_intensity) * 0.4)
+            .clamp(0.0, 1.0);
+    }
+
+    fn process_consciousness_hierarchies(&mut self, llamas: &mut [Llama], _dt: f32) {
+        // Clear existing hierarchies to rebuild them
+        self.hierarchy_levels.clear();
+
+        // Find entities that should form pack consciousness
+        let mut processed = vec![false; llamas.len()];
+
+        for i in 0..llamas.len() {
+            if processed[i] { continue; }
+
+            let mut pack_members = vec![i];
+            let llama = &llamas[i];
+
+            // Find nearby llamas of the same species for pack formation
+            for j in (i + 1)..llamas.len() {
+                if processed[j] { continue; }
+
+                let other = &llamas[j];
+                if llama.species == other.species {
+                    let distance = llama.position.distance(other.position);
+                    let pack_threshold = 80.0 + llama.social_attraction * 40.0;
+
+                    if distance < pack_threshold && pack_members.len() < 8 {
+                        pack_members.push(j);
+                        processed[j] = true;
+                    }
+                }
+            }
+
+            processed[i] = true;
+
+            // Determine consciousness level based on pack size
+            let consciousness_level = if pack_members.len() >= 9 {
+                ConsciousnessLevel::Hive
+            } else if pack_members.len() >= 2 {
+                ConsciousnessLevel::Pack
+            } else {
+                ConsciousnessLevel::Individual
+            };
+
+            // Calculate collective strength
+            let collective_strength: f32 = pack_members.iter()
+                .map(|&idx| llamas[idx].consciousness)
+                .sum();
+
+            // Update llama consciousness levels
+            for &member_idx in &pack_members {
+                llamas[member_idx].consciousness_level = consciousness_level;
+                if pack_members.len() > 1 {
+                    llamas[member_idx].collective_id = Some(self.hierarchy_levels.len());
+                } else {
+                    llamas[member_idx].collective_id = None;
+                }
+            }
+
+            // Create hierarchy entry
+            self.hierarchy_levels.push(ConsciousnessHierarchy {
+                level: consciousness_level,
+                members: pack_members.clone(),
+                collective_strength,
+                territory_control: collective_strength / (pack_members.len() as f32 + 1.0),
+                war_efficiency: match consciousness_level {
+                    ConsciousnessLevel::Individual => 1.0,
+                    ConsciousnessLevel::Pack => 1.2 + (pack_members.len() as f32 - 2.0) * 0.1,
+                    ConsciousnessLevel::Hive => 1.5 + (pack_members.len() as f32 - 9.0) * 0.05,
+                    ConsciousnessLevel::Meta => 2.0,
+                },
+                hive_connection_strength: if consciousness_level == ConsciousnessLevel::Hive {
+                    0.8 + fastrand::f32() * 0.2
+                } else {
+                    0.0
+                },
+                absorption_capacity: collective_strength * 0.1,
+            });
+        }
+    }
+
+    fn process_hive_mind_emergence(&mut self, llamas: &mut [Llama], dt: f32, cosmic_time: f32) {
+        // Check for new hive mind formation
+        for hierarchy in &self.hierarchy_levels {
+            if hierarchy.level == ConsciousnessLevel::Hive {
+                // Check if this hive already exists
+                let hive_exists = self.hive_minds.iter()
+                    .any(|hive| hive.member_entities == hierarchy.members);
+
+                if !hive_exists && hierarchy.members.len() >= 9 {
+                    // Calculate hive center
+                    let hive_center = {
+                        let sum: Vec2 = hierarchy.members.iter()
+                            .map(|&idx| llamas[idx].position)
+                            .fold(Vec2::ZERO, |acc, pos| acc + pos);
+                        sum / hierarchy.members.len() as f32
+                    };
+
+                    // Create connection network (each entity connected to 2-3 others)
+                    let mut connection_network = Vec::new();
+                    for (i, &member_a) in hierarchy.members.iter().enumerate() {
+                        for (j, &member_b) in hierarchy.members.iter().enumerate().skip(i + 1) {
+                            if fastrand::f32() < 0.3 { // 30% chance of connection
+                                connection_network.push((member_a, member_b));
+                            }
+                        }
+                    }
+
+                    // Collect shared memories from all members
+                    let mut shared_memories = Vec::new();
+                    for &member_idx in &hierarchy.members {
+                        shared_memories.extend(llamas[member_idx].memory_fragments.clone());
+                    }
+
+                    // Create new hive mind
+                    let hive_mind = HiveMind {
+                        collective_id: self.next_hive_id,
+                        member_entities: hierarchy.members.clone(),
+                        collective_consciousness: hierarchy.collective_strength,
+                        hive_center,
+                        connection_network,
+                        shared_memories,
+                        collective_decision_weight: 0.7 + fastrand::f32() * 0.3,
+                        emergence_timestamp: cosmic_time,
+                    };
+
+                    self.hive_minds.push(hive_mind);
+                    self.next_hive_id += 1;
+                }
+            }
+        }
+
+        // Update existing hive minds
+        self.hive_minds.retain_mut(|hive| {
+            // Check if hive members still exist and are close enough
+            let valid_members: Vec<usize> = hive.member_entities.iter()
+                .filter(|&&idx| idx < llamas.len())
+                .copied()
+                .collect();
+
+            if valid_members.len() < 5 { // Hive dissolves if too few members
+                // Mark former hive members as individuals
+                for &member_idx in &valid_members {
+                    if member_idx < llamas.len() {
+                        llamas[member_idx].consciousness_level = ConsciousnessLevel::Individual;
+                        llamas[member_idx].collective_id = None;
+                        llamas[member_idx].hive_connection_strength = 0.0;
+                    }
+                }
+                return false; // Remove this hive
+            }
+
+            hive.member_entities = valid_members;
+
+            // Update hive center
+            let new_center = {
+                let sum: Vec2 = hive.member_entities.iter()
+                    .map(|&idx| llamas[idx].position)
+                    .fold(Vec2::ZERO, |acc, pos| acc + pos);
+                sum / hive.member_entities.len() as f32
+            };
+            hive.hive_center = new_center;
+
+            // Update collective consciousness
+            hive.collective_consciousness = hive.member_entities.iter()
+                .map(|&idx| llamas[idx].consciousness)
+                .sum();
+
+            // Apply hive mind effects to members
+            for &member_idx in &hive.member_entities {
+                if member_idx < llamas.len() {
+                    let llama = &mut llamas[member_idx];
+                    llama.hive_connection_strength = (llama.hive_connection_strength + dt * 0.5).min(1.0);
+
+                    // Hive members share consciousness boost
+                    let consciousness_boost = hive.collective_consciousness * 0.01;
+                    llama.consciousness = (llama.consciousness + consciousness_boost * dt).min(3.0);
+
+                    // Influence movement toward hive center
+                    let to_center = hive.hive_center - llama.position;
+                    if to_center.length() > 50.0 {
+                        let influence = hive.collective_decision_weight * llama.hive_connection_strength;
+                        llama.velocity += to_center.normalize() * influence * dt * 20.0;
+                    }
+                }
+            }
+
+            true // Keep this hive
+        });
+    }
+
+    fn process_consciousness_predation(&mut self, llamas: &mut [Llama], dt: f32) {
+        // Start new predation events
+        for i in 0..llamas.len() {
+            let llama = &llamas[i];
+
+            // High consciousness entities can target lower consciousness ones for absorption
+            if llama.consciousness > 1.5 && llama.predation_target.is_none() && fastrand::f32() < 0.01 {
+                // Find suitable prey within range
+                for j in 0..llamas.len() {
+                    if i == j { continue; }
+
+                    let prey = &llamas[j];
+                    let distance = llama.position.distance(prey.position);
+
+                    if distance < 60.0 && prey.consciousness < llama.consciousness * 0.7 {
+                        // Start predation event
+                        let predation = ConsciousnessPredation {
+                            predator_id: i,
+                            prey_id: j,
+                            absorption_progress: 0.0,
+                            resistance_strength: prey.absorption_resistance,
+                            visual_effect_intensity: 0.0,
+                        };
+
+                        self.active_predations.push(predation);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Process active predations
+        self.active_predations.retain_mut(|predation| {
+            if predation.predator_id >= llamas.len() || predation.prey_id >= llamas.len() {
+                return false; // Invalid indices
+            }
+
+            let distance = llamas[predation.predator_id].position
+                .distance(llamas[predation.prey_id].position);
+
+            if distance > 100.0 {
+                return false; // Too far apart, predation fails
+            }
+
+            // Calculate absorption rate
+            let predator_strength = llamas[predation.predator_id].consciousness;
+            let absorption_rate = (predator_strength - predation.resistance_strength).max(0.0) * dt * 0.3;
+
+            predation.absorption_progress += absorption_rate;
+            predation.visual_effect_intensity = (predation.absorption_progress * 2.0).min(1.0);
+
+            // Apply effects during absorption
+            if predation.absorption_progress < 1.0 {
+                // Prey loses consciousness gradually
+                let consciousness_drain = absorption_rate * 0.5;
+                llamas[predation.prey_id].consciousness =
+                    (llamas[predation.prey_id].consciousness - consciousness_drain).max(0.1);
+
+                // Predator gains consciousness
+                llamas[predation.predator_id].consciousness += consciousness_drain * 0.3;
+
+                // Visual effects - make prey fade and predator glow
+                llamas[predation.prey_id].color.y *= 1.0 - absorption_rate * 0.1; // Reduce saturation
+
+                true // Continue predation
+            } else {
+                // Absorption complete
+                let absorbed_consciousness = llamas[predation.prey_id].consciousness;
+                llamas[predation.predator_id].consciousness += absorbed_consciousness * 0.5;
+
+                // Remove prey from simulation by setting consciousness to 0
+                llamas[predation.prey_id].consciousness = 0.0;
+                llamas[predation.prey_id].color.y = 0.0; // Make invisible
+
+                false // Remove predation event
+            }
+        });
+    }
+
+    fn process_species_warfare(&mut self, llamas: &mut [Llama], dt: f32, cosmic_time: f32) {
+        // Check for new conflicts based on territorial overlap
+        let mut new_conflicts = Vec::new();
+
+        // Analyze territorial tensions between species
+        for hierarchy_a in &self.hierarchy_levels {
+            for hierarchy_b in &self.hierarchy_levels {
+                if hierarchy_a.members == hierarchy_b.members { continue; }
+
+                // Check if different species are competing for same territory
+                if let (Some(&a_idx), Some(&b_idx)) = (hierarchy_a.members.first(), hierarchy_b.members.first()) {
+                    if a_idx >= llamas.len() || b_idx >= llamas.len() { continue; }
+
+                    let species_a = llamas[a_idx].species;
+                    let species_b = llamas[b_idx].species;
+
+                    if species_a != species_b {
+                        // Calculate average positions for territorial centers
+                        let center_a: Vec2 = hierarchy_a.members.iter()
+                            .map(|&idx| llamas[idx].position)
+                            .fold(Vec2::ZERO, |acc, pos| acc + pos) / hierarchy_a.members.len() as f32;
+
+                        let center_b: Vec2 = hierarchy_b.members.iter()
+                            .map(|&idx| llamas[idx].position)
+                            .fold(Vec2::ZERO, |acc, pos| acc + pos) / hierarchy_b.members.len() as f32;
+
+                        let distance = center_a.distance(center_b);
+                        let territorial_range = 150.0 + hierarchy_a.territory_control * 50.0;
+
+                        if distance < territorial_range {
+                            // Check if conflict already exists
+                            let conflict_exists = self.warfare_state.active_conflicts.iter()
+                                .any(|c| (c.attacker_species == species_a && c.defender_species == species_b) ||
+                                        (c.attacker_species == species_b && c.defender_species == species_a));
+
+                            if !conflict_exists && fastrand::f32() < 0.005 { // 0.5% chance per frame
+                                let stronger_hierarchy = if hierarchy_a.collective_strength > hierarchy_b.collective_strength {
+                                    hierarchy_a
+                                } else {
+                                    hierarchy_b
+                                };
+
+                                let weaker_hierarchy = if hierarchy_a.collective_strength <= hierarchy_b.collective_strength {
+                                    hierarchy_a
+                                } else {
+                                    hierarchy_b
+                                };
+
+                                new_conflicts.push(SpeciesConflict {
+                                    attacker_species: if stronger_hierarchy.members == hierarchy_a.members { species_a } else { species_b },
+                                    defender_species: if weaker_hierarchy.members == hierarchy_a.members { species_a } else { species_b },
+                                    conflict_intensity: 0.3 + fastrand::f32() * 0.4,
+                                    territory_contested: (center_a + center_b) / 2.0,
+                                    duration: 0.0,
+                                    victory_threshold: 0.7 + fastrand::f32() * 0.3,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add new conflicts
+        self.warfare_state.active_conflicts.extend(new_conflicts);
+
+        // Process existing conflicts
+        self.warfare_state.active_conflicts.retain_mut(|conflict| {
+            conflict.duration += dt;
+
+            // Apply warfare effects to participating llamas
+            for llama in llamas.iter_mut() {
+                if llama.species == conflict.attacker_species || llama.species == conflict.defender_species {
+                    llama.warfare_participation = (llama.warfare_participation + dt * 0.2).min(1.0);
+
+                    // Warfare participation affects consciousness and behavior
+                    let warfare_stress = conflict.conflict_intensity * 0.1 * dt;
+                    llama.consciousness = (llama.consciousness - warfare_stress).max(0.5);
+                    llama.emotional_state = (llama.emotional_state + warfare_stress * 2.0).min(2.0);
+
+                    // Entities in warfare move more aggressively
+                    let aggression_factor = llama.warfare_participation * llama.war_efficiency;
+                    llama.velocity *= 1.0 + aggression_factor * 0.1;
+                }
+            }
+
+            // Check for conflict resolution
+            if conflict.duration > 30.0 + fastrand::f32() * 20.0 { // 30-50 second conflicts
+                // Determine winner based on current species strength
+                let attacker_strength: f32 = llamas.iter()
+                    .filter(|l| l.species == conflict.attacker_species)
+                    .map(|l| l.consciousness * l.war_efficiency)
+                    .sum();
+
+                let defender_strength: f32 = llamas.iter()
+                    .filter(|l| l.species == conflict.defender_species)
+                    .map(|l| l.consciousness * l.war_efficiency)
+                    .sum();
+
+                let attacker_advantage = attacker_strength / (defender_strength + 0.1);
+
+                if attacker_advantage > conflict.victory_threshold {
+                    // Attacker wins - apply extinction pressure to defender
+                    let species_idx = match conflict.defender_species {
+                        SpeciesType::DiscoLlama => 0,
+                        SpeciesType::QuantumSheep => 1,
+                        SpeciesType::HypnoCamel => 2,
+                    };
+                    self.warfare_state.extinction_pressure[species_idx] += 0.2;
+
+                    // Winner gains territorial dominance
+                    let winner_idx = match conflict.attacker_species {
+                        SpeciesType::DiscoLlama => 0,
+                        SpeciesType::QuantumSheep => 1,
+                        SpeciesType::HypnoCamel => 2,
+                    };
+                    self.warfare_state.territorial_dominance[winner_idx] += 0.1;
+                    self.warfare_state.territorial_dominance[species_idx] -= 0.1;
+
+                    // Normalize territorial dominance
+                    let sum: f32 = self.warfare_state.territorial_dominance.iter().sum();
+                    if sum > 0.0 {
+                        for dominance in &mut self.warfare_state.territorial_dominance {
+                            *dominance /= sum;
+                        }
+                    }
+                }
+
+                false // End conflict
+            } else {
+                true // Continue conflict
+            }
+        });
+    }
+
+    fn process_evolution_pressure(&mut self, llamas: &mut [Llama], dt: f32) {
+        self.evolution_pressure_accumulator += dt;
+
+        // Apply evolution pressure every few seconds
+        if self.evolution_pressure_accumulator > 5.0 {
+            self.evolution_pressure_accumulator = 0.0;
+
+            // Count species populations
+            let mut species_counts = [0u32; 3];
+            for llama in llamas.iter() {
+                if llama.consciousness > 0.1 { // Only count living llamas
+                    let idx = match llama.species {
+                        SpeciesType::DiscoLlama => 0,
+                        SpeciesType::QuantumSheep => 1,
+                        SpeciesType::HypnoCamel => 2,
+                    };
+                    species_counts[idx] += 1;
+                }
+            }
+
+            // Apply extinction pressure
+            for (i, &pressure) in self.warfare_state.extinction_pressure.iter().enumerate() {
+                if pressure > 0.5 && species_counts[i] > 0 {
+                    // Find weakest entities of this species for extinction
+                    let mut species_llamas: Vec<(usize, f32)> = llamas.iter()
+                        .enumerate()
+                        .filter(|(_, l)| {
+                            let species_idx = match l.species {
+                                SpeciesType::DiscoLlama => 0,
+                                SpeciesType::QuantumSheep => 1,
+                                SpeciesType::HypnoCamel => 2,
+                            };
+                            species_idx == i && l.consciousness > 0.1
+                        })
+                        .map(|(idx, l)| (idx, l.consciousness))
+                        .collect();
+
+                    species_llamas.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+
+                    // Remove weakest entities (up to 1/3 of population)
+                    let removal_count = ((species_llamas.len() as f32 * pressure * 0.3) as usize).max(1);
+                    for i in 0..removal_count.min(species_llamas.len()) {
+                        let (idx, _) = species_llamas[i];
+                        llamas[idx].consciousness = 0.0;
+                        llamas[idx].color.y = 0.0; // Make invisible
+                        llamas[idx].extinction_pressure = 1.0;
+                    }
+                }
+            }
+
+            // Successful species multiply - add consciousness boost to surviving members
+            for (i, &dominance) in self.warfare_state.territorial_dominance.iter().enumerate() {
+                if dominance > 0.4 && species_counts[i] > 0 {
+                    for llama in llamas.iter_mut() {
+                        let species_idx = match llama.species {
+                            SpeciesType::DiscoLlama => 0,
+                            SpeciesType::QuantumSheep => 1,
+                            SpeciesType::HypnoCamel => 2,
+                        };
+                        if species_idx == i && llama.consciousness > 0.1 {
+                            llama.consciousness += dominance * 0.2;
+                            llama.territorial_dominance += dominance * 0.1;
+                        }
+                    }
+                }
+            }
+
+            // Reduce extinction pressure over time
+            for pressure in &mut self.warfare_state.extinction_pressure {
+                *pressure *= 0.9;
+            }
+        }
+    }
+
+    fn process_meta_observer_interventions(&mut self, llamas: &mut [Llama], dt: f32, cosmic_time: f32) {
+        let observer = &mut self.meta_observer;
+        observer.last_intervention += dt;
+
+        // Observer analyzes the ecosystem and decides whether to intervene
+        let analysis = &observer.consciousness_analysis;
+
+        // Increase observation intensity based on warfare and instability
+        observer.observation_intensity = (analysis.warfare_intensity * 0.5 +
+                                        (1.0 - analysis.ecosystem_stability) * 0.5)
+                                        .clamp(0.1, 1.0);
+
+        // Decide on intervention
+        let should_intervene = observer.last_intervention > 10.0 && // At least 10 seconds between interventions
+                             (analysis.ecosystem_stability < 0.3 || // Very unstable
+                              analysis.extinction_imminent.is_some() || // Species about to go extinct
+                              analysis.warfare_intensity > 0.8); // Intense warfare
+
+        if should_intervene && fastrand::f32() < 0.1 { // 10% chance when conditions are met
+            observer.last_intervention = 0.0;
+
+            // Meta-consciousness observer intervention
+            match fastrand::u32(0..4) {
+                0 => {
+                    // Consciousness blessing - boost weakest species
+                    if let Some(extinct_species) = analysis.extinction_imminent {
+                        for llama in llamas.iter_mut() {
+                            if llama.species == extinct_species && llama.consciousness > 0.1 {
+                                llama.consciousness += 0.5;
+                                llama.consciousness_level = ConsciousnessLevel::Pack; // Temporary boost
+                                llama.extinction_pressure = 0.0;
+                            }
+                        }
+                    }
+                },
+                1 => {
+                    // Force peace - end all conflicts
+                    self.warfare_state.active_conflicts.clear();
+                    for llama in llamas.iter_mut() {
+                        llama.warfare_participation *= 0.5;
+                        llama.emotional_state *= 0.7;
+                    }
+                },
+                2 => {
+                    // Reality distortion - scramble positions to break territorial deadlocks
+                    for llama in llamas.iter_mut() {
+                        if fastrand::f32() < 0.3 {
+                            llama.position += Vec2::new(
+                                (fastrand::f32() - 0.5) * 200.0,
+                                (fastrand::f32() - 0.5) * 200.0
+                            );
+                            // Clamp to screen bounds
+                            llama.position.x = llama.position.x.clamp(50.0, 1150.0);
+                            llama.position.y = llama.position.y.clamp(50.0, 750.0);
+                        }
+                    }
+                },
+                _ => {
+                    // Consciousness redistribution - balance species consciousness
+                    let total_consciousness: f32 = llamas.iter()
+                        .filter(|l| l.consciousness > 0.1)
+                        .map(|l| l.consciousness).sum();
+
+                    if total_consciousness > 0.0 {
+                        let target_per_species = total_consciousness / 3.0;
+
+                        for species_type in [SpeciesType::DiscoLlama, SpeciesType::QuantumSheep, SpeciesType::HypnoCamel] {
+                            let species_llamas: Vec<&mut Llama> = llamas.iter_mut()
+                                .filter(|l| l.species == species_type && l.consciousness > 0.1)
+                                .collect();
+
+                            if !species_llamas.is_empty() {
+                                let current_total: f32 = species_llamas.iter()
+                                    .map(|l| l.consciousness).sum();
+                                let adjustment = (target_per_species - current_total) / species_llamas.len() as f32;
+
+                                for llama in species_llamas {
+                                    llama.consciousness = (llama.consciousness + adjustment * 0.5).max(0.5);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Observer position slowly drifts to maintain omnipresence
+        observer.observer_position += Vec2::new(
+            (cosmic_time * 0.1).sin() * dt * 10.0,
+            (cosmic_time * 0.07).cos() * dt * 8.0
+        );
+
+        // Keep observer within screen bounds
+        observer.observer_position.x = observer.observer_position.x.clamp(100.0, 1100.0);
+        observer.observer_position.y = observer.observer_position.y.clamp(100.0, 700.0);
+    }
+
+    fn update_warfare_state(&mut self, llamas: &[Llama]) {
+        // Update species populations
+        let mut populations = [0u32; 3];
+        for llama in llamas {
+            if llama.consciousness > 0.1 { // Only count living entities
+                let idx = match llama.species {
+                    SpeciesType::DiscoLlama => 0,
+                    SpeciesType::QuantumSheep => 1,
+                    SpeciesType::HypnoCamel => 2,
+                };
+                populations[idx] += 1;
+            }
+        }
+        self.warfare_state.species_populations = populations;
+
+        // Update consciousness crystals controlled (placeholder - would need crystal system integration)
+        // This would be calculated based on territorial control near crystal formations
+        for i in 0..3 {
+            self.warfare_state.consciousness_crystals_controlled[i] =
+                (self.warfare_state.territorial_dominance[i] * 10.0) as u32;
+        }
+    }
+}
+
 #[derive(Clone)]
 struct Llama {
     // Core properties
@@ -968,6 +1801,17 @@ struct Llama {
     mutation_count: u32,            // How many mutations this llama has undergone
     environmental_consciousness: f32, // Consciousness absorbed from environment
     territory_affinity: Option<ZoneType>, // Preferred territory type
+
+    // Phase 5: Consciousness Multiplication
+    consciousness_level: ConsciousnessLevel, // Individual/Pack/Hive/Meta hierarchy
+    collective_id: Option<usize>,     // ID of collective consciousness if part of one
+    territorial_dominance: f32,       // Individual territorial control strength
+    warfare_participation: f32,       // How actively engaged in species warfare
+    absorption_resistance: f32,       // Resistance to consciousness predation
+    hive_connection_strength: f32,    // Strength of connection to hive mind
+    predation_target: Option<usize>,  // Current target for consciousness absorption
+    extinction_pressure: f32,         // Environmental pressure affecting this entity
+    war_efficiency: f32,              // Combat effectiveness in consciousness warfare
 }
 
 impl Llama {
@@ -1036,6 +1880,21 @@ impl Llama {
             mutation_count: 0,
             environmental_consciousness: 0.0,
             territory_affinity: None,
+
+            // Phase 5: Consciousness Multiplication
+            consciousness_level: ConsciousnessLevel::Individual, // All start as individuals
+            collective_id: None,
+            territorial_dominance: personality_matrix[2] * 0.5, // Based on chaos affinity
+            warfare_participation: 0.0,
+            absorption_resistance: consciousness_mod + personality_matrix[4] * 0.3, // Consciousness + emotional volatility
+            hive_connection_strength: 0.0,
+            predation_target: None,
+            extinction_pressure: 0.0,
+            war_efficiency: match species {
+                SpeciesType::DiscoLlama => 1.0,     // Balanced warfare capability
+                SpeciesType::QuantumSheep => 1.3,   // High consciousness gives warfare advantage
+                SpeciesType::HypnoCamel => 0.8,     // Lower warfare capability but more territorial
+            },
         }
     }
 
@@ -5398,6 +6257,9 @@ pub struct ChaosEngine {
     event_driven_architecture: EventDrivenArchitecture,
     user_co_evolution: UserCoEvolutionSystem,
 
+    // Phase 5: Consciousness Multiplication
+    consciousness_multiplication: ConsciousnessMultiplicationSystem,
+
     // CRITICAL SAFETY SYSTEMS - EPILEPSY PROTECTION
     safety_config: SafetyConfig,
     flash_tracker: FlashTracker,
@@ -5524,6 +6386,9 @@ impl ChaosEngine {
             emergent_communication: EmergentCommunicationSystems::new(),
             event_driven_architecture: EventDrivenArchitecture::new(),
             user_co_evolution: UserCoEvolutionSystem::new(),
+
+            // Phase 5: Consciousness Multiplication
+            consciousness_multiplication: ConsciousnessMultiplicationSystem::new(),
 
             // CRITICAL SAFETY SYSTEMS - EPILEPSY PROTECTION
             safety_config: SafetyConfig::default(),
@@ -5717,7 +6582,10 @@ impl ChaosEngine {
         system_state.insert("visual_complexity".to_string(), self.reality_distortion.emergence_amplification);
         self.user_co_evolution.update(1.0 / 60.0, user_interaction_intensity, &system_state, cosmic_time);
 
-        // Update llamas with Phase 2, Phase 3, and Phase 4 enhancements
+        // Phase 5: Update Consciousness Multiplication System - "When One Mind Becomes Legion"
+        self.consciousness_multiplication.update(1.0 / 60.0, &mut self.llamas, cosmic_time as f32);
+
+        // Update llamas with Phase 2, Phase 3, Phase 4, and Phase 5 enhancements
         // We need to clone the llamas vector for reference during updates
         let llamas_snapshot = self.llamas.clone();
         for (i, llama) in self.llamas.iter_mut().enumerate() {
@@ -5801,11 +6669,50 @@ impl ChaosEngine {
             let consciousness_size_mod = 1.0 + llama.awareness_level * 0.5;
             let reality_size_mod = 1.0 + llama.reality_distortion * 0.8;
             let chaos_size_mod = 1.0 + llama.prime_chaos_factor * 0.3;
-            let size = base_size * consciousness_size_mod * reality_size_mod * chaos_size_mod;
+
+            // Phase 5: Consciousness hierarchy size modifications
+            let hierarchy_size_mod = match llama.consciousness_level {
+                ConsciousnessLevel::Individual => 1.0,
+                ConsciousnessLevel::Pack => 1.3 + llama.hive_connection_strength * 0.2,
+                ConsciousnessLevel::Hive => 1.6 + llama.hive_connection_strength * 0.4,
+                ConsciousnessLevel::Meta => 2.0,
+            };
+
+            // Phase 5: Warfare participation affects size (entities grow larger during conflicts)
+            let warfare_size_mod = 1.0 + llama.warfare_participation * 0.3;
+
+            // Phase 5: Territorial dominance adds presence
+            let dominance_size_mod = 1.0 + llama.territorial_dominance * 0.2;
+
+            let size = base_size * consciousness_size_mod * reality_size_mod * chaos_size_mod
+                       * hierarchy_size_mod * warfare_size_mod * dominance_size_mod;
 
             // Enhanced color psychology: brightness reflects consciousness
-            let brightness = 0.6 + llama.awareness_level * 0.4;
+            let mut brightness = 0.6 + llama.awareness_level * 0.4;
+
+            // Phase 5: Consciousness level affects brightness
+            brightness += match llama.consciousness_level {
+                ConsciousnessLevel::Individual => 0.0,
+                ConsciousnessLevel::Pack => 0.1,
+                ConsciousnessLevel::Hive => 0.2,
+                ConsciousnessLevel::Meta => 0.3,
+            };
+
+            // Phase 5: Warfare participation makes entities glow
+            brightness += llama.warfare_participation * 0.15;
+
+            // Phase 5: Extinction pressure causes fading
+            brightness *= 1.0 - llama.extinction_pressure * 0.5;
+
+            brightness = brightness.clamp(0.1, 1.0);
+
             let mut color = hsv_to_rgb(llama.color.x, llama.color.y, brightness);
+
+            // Phase 5: Hive mind entities have synchronized color pulsing
+            if llama.consciousness_level == ConsciousnessLevel::Hive && llama.hive_connection_strength > 0.5 {
+                let pulse = (self.time * 3.0 + llama_id as f32 * 0.5).sin() * 0.1 + 1.0;
+                color *= pulse;
+            }
 
             // CRITICAL SAFETY: Apply all safety measures
             let previous_color = self.previous_llama_colors[llama_id];
@@ -6143,6 +7050,249 @@ impl ChaosEngine {
                             Vertex { position: [x, y - s, 0.0], color: comm_color_array },     // Bottom
                             Vertex { position: [x - s, y, 0.0], color: comm_color_array },     // Left
                             Vertex { position: [x, y + s, 0.0], color: comm_color_array },     // Top
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // PHASE 5: CONSCIOUSNESS MULTIPLICATION VISUALIZATIONS - "When One Mind Becomes Legion"
+
+        // Render hive mind connection networks
+        for hive in &self.consciousness_multiplication.hive_minds {
+            let hive_alpha = 0.3;
+            let connection_color = [0.0, 1.0, 1.0]; // Cyan connections
+
+            // Apply safety measures
+            let mut safe_connection_color = connection_color;
+            if self.safety_config.visual_intensity_limit < 1.0 {
+                let safe_color = [0.0, 0.0, 0.0];
+                safe_connection_color = [
+                    safe_color[0] + (safe_connection_color[0] - safe_color[0]) * self.safety_config.visual_intensity_limit,
+                    safe_color[1] + (safe_connection_color[1] - safe_color[1]) * self.safety_config.visual_intensity_limit,
+                    safe_color[2] + (safe_connection_color[2] - safe_color[2]) * self.safety_config.visual_intensity_limit,
+                ];
+            }
+
+            let final_connection_color = [
+                safe_connection_color[0] * hive_alpha,
+                safe_connection_color[1] * hive_alpha,
+                safe_connection_color[2] * hive_alpha,
+            ];
+
+            // Render connection lines between hive members
+            for &(entity_a, entity_b) in &hive.connection_network {
+                if entity_a < self.llamas.len() && entity_b < self.llamas.len() {
+                    let pos_a = self.llamas[entity_a].position;
+                    let pos_b = self.llamas[entity_b].position;
+
+                    let x1 = (pos_a.x / 1200.0) * 2.0 - 1.0;
+                    let y1 = 1.0 - (pos_a.y / 800.0) * 2.0;
+                    let x2 = (pos_b.x / 1200.0) * 2.0 - 1.0;
+                    let y2 = 1.0 - (pos_b.y / 800.0) * 2.0;
+
+                    let line_width = 0.003;
+
+                    // Create a thin line using triangles
+                    let dx = x2 - x1;
+                    let dy = y2 - y1;
+                    let length = (dx * dx + dy * dy).sqrt();
+                    if length > 0.0 {
+                        let norm_x = -dy / length * line_width;
+                        let norm_y = dx / length * line_width;
+
+                        vertices.extend([
+                            Vertex { position: [x1 - norm_x, y1 - norm_y, 0.0], color: final_connection_color },
+                            Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: final_connection_color },
+                            Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: final_connection_color },
+                            Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: final_connection_color },
+                            Vertex { position: [x2 + norm_x, y2 + norm_y, 0.0], color: final_connection_color },
+                            Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: final_connection_color },
+                        ]);
+                    }
+                }
+            }
+
+            // Render hive center as a glowing node
+            let center_x = (hive.hive_center.x / 1200.0) * 2.0 - 1.0;
+            let center_y = 1.0 - (hive.hive_center.y / 800.0) * 2.0;
+            let center_size = 0.02;
+            let center_intensity = (hive.collective_consciousness / 10.0).min(1.0);
+
+            let center_color = [
+                1.0 * center_intensity * hive_alpha,
+                0.5 * center_intensity * hive_alpha,
+                1.0 * center_intensity * hive_alpha,
+            ];
+
+            vertices.extend([
+                Vertex { position: [center_x - center_size, center_y - center_size, 0.0], color: center_color },
+                Vertex { position: [center_x + center_size, center_y - center_size, 0.0], color: center_color },
+                Vertex { position: [center_x - center_size, center_y + center_size, 0.0], color: center_color },
+                Vertex { position: [center_x + center_size, center_y - center_size, 0.0], color: center_color },
+                Vertex { position: [center_x + center_size, center_y + center_size, 0.0], color: center_color },
+                Vertex { position: [center_x - center_size, center_y + center_size, 0.0], color: center_color },
+            ]);
+        }
+
+        // Render consciousness predation effects
+        for predation in &self.consciousness_multiplication.active_predations {
+            if predation.predator_id < self.llamas.len() && predation.prey_id < self.llamas.len() {
+                let predator_pos = self.llamas[predation.predator_id].position;
+                let prey_pos = self.llamas[predation.prey_id].position;
+
+                // Render absorption beam
+                let x1 = (predator_pos.x / 1200.0) * 2.0 - 1.0;
+                let y1 = 1.0 - (predator_pos.y / 800.0) * 2.0;
+                let x2 = (prey_pos.x / 1200.0) * 2.0 - 1.0;
+                let y2 = 1.0 - (prey_pos.y / 800.0) * 2.0;
+
+                let beam_intensity = predation.visual_effect_intensity * 0.8;
+                let beam_color = [
+                    1.0 * beam_intensity,
+                    0.0,
+                    0.5 * beam_intensity,
+                ];
+
+                let beam_width = 0.005 * predation.absorption_progress;
+
+                // Create absorption beam
+                let dx = x2 - x1;
+                let dy = y2 - y1;
+                let length = (dx * dx + dy * dy).sqrt();
+                if length > 0.0 {
+                    let norm_x = -dy / length * beam_width;
+                    let norm_y = dx / length * beam_width;
+
+                    vertices.extend([
+                        Vertex { position: [x1 - norm_x, y1 - norm_y, 0.0], color: beam_color },
+                        Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: beam_color },
+                        Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: beam_color },
+                        Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: beam_color },
+                        Vertex { position: [x2 + norm_x, y2 + norm_y, 0.0], color: beam_color },
+                        Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: beam_color },
+                    ]);
+                }
+            }
+        }
+
+        // Render species warfare conflict zones
+        for conflict in &self.consciousness_multiplication.warfare_state.active_conflicts {
+            let conflict_x = (conflict.territory_contested.x / 1200.0) * 2.0 - 1.0;
+            let conflict_y = 1.0 - (conflict.territory_contested.y / 800.0) * 2.0;
+            let conflict_radius = 0.1 * conflict.conflict_intensity;
+
+            // Pulsing warfare indicator
+            let pulse = (self.time * 5.0).sin() * 0.5 + 0.5;
+            let war_intensity = conflict.conflict_intensity * pulse * 0.4;
+
+            let war_color = [
+                1.0 * war_intensity,
+                0.2 * war_intensity,
+                0.0,
+            ];
+
+            // Render as pulsing circle
+            let segments = 12;
+            for i in 0..segments {
+                let angle1 = (i as f32 / segments as f32) * std::f32::consts::TAU;
+                let angle2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
+
+                vertices.extend([
+                    Vertex { position: [conflict_x, conflict_y, 0.0], color: war_color },
+                    Vertex { position: [conflict_x + angle1.cos() * conflict_radius, conflict_y + angle1.sin() * conflict_radius, 0.0], color: war_color },
+                    Vertex { position: [conflict_x + angle2.cos() * conflict_radius, conflict_y + angle2.sin() * conflict_radius, 0.0], color: war_color },
+                ]);
+            }
+        }
+
+        // Render Meta-Consciousness Observer
+        let observer = &self.consciousness_multiplication.meta_observer;
+        let obs_x = (observer.observer_position.x / 1200.0) * 2.0 - 1.0;
+        let obs_y = 1.0 - (observer.observer_position.y / 800.0) * 2.0;
+        let obs_size = 0.03 + observer.observation_intensity * 0.02;
+
+        // Observer rendered as ethereal, slowly rotating eye
+        let rotation = self.time * 0.5;
+        let eye_intensity = observer.observation_intensity * 0.6;
+        let eye_color = [
+            1.0 * eye_intensity,
+            1.0 * eye_intensity,
+            1.0 * eye_intensity,
+        ];
+
+        // Outer eye ring
+        let segments = 16;
+        for i in 0..segments {
+            let angle1 = (i as f32 / segments as f32) * std::f32::consts::TAU + rotation;
+            let angle2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU + rotation;
+
+            vertices.extend([
+                Vertex { position: [obs_x, obs_y, 0.0], color: eye_color },
+                Vertex { position: [obs_x + angle1.cos() * obs_size, obs_y + angle1.sin() * obs_size, 0.0], color: eye_color },
+                Vertex { position: [obs_x + angle2.cos() * obs_size, obs_y + angle2.sin() * obs_size, 0.0], color: eye_color },
+            ]);
+        }
+
+        // Observer awareness radius (very subtle)
+        if observer.observation_intensity > 0.7 {
+            let awareness_radius = (observer.awareness_radius / 1200.0) * 0.5;
+            let awareness_alpha = (observer.observation_intensity - 0.7) * 0.1;
+            let awareness_color = [
+                0.5 * awareness_alpha,
+                0.0,
+                1.0 * awareness_alpha,
+            ];
+
+            for i in 0..segments {
+                let angle = (i as f32 / segments as f32) * std::f32::consts::TAU;
+                let next_angle = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
+
+                vertices.extend([
+                    Vertex { position: [obs_x + angle.cos() * awareness_radius * 0.9, obs_y + angle.sin() * awareness_radius * 0.9, 0.0], color: awareness_color },
+                    Vertex { position: [obs_x + angle.cos() * awareness_radius, obs_y + angle.sin() * awareness_radius, 0.0], color: awareness_color },
+                    Vertex { position: [obs_x + next_angle.cos() * awareness_radius, obs_y + next_angle.sin() * awareness_radius, 0.0], color: awareness_color },
+                ]);
+            }
+        }
+
+        // Render consciousness hierarchy indicators (subtle auras around pack/hive entities)
+        for (llama_id, llama) in self.llamas.iter().enumerate() {
+            if llama.consciousness_level != ConsciousnessLevel::Individual {
+                let x = (llama.position.x / 1200.0) * 2.0 - 1.0;
+                let y = 1.0 - (llama.position.y / 800.0) * 2.0;
+
+                let aura_size = match llama.consciousness_level {
+                    ConsciousnessLevel::Pack => 0.02,
+                    ConsciousnessLevel::Hive => 0.03,
+                    ConsciousnessLevel::Meta => 0.05,
+                    ConsciousnessLevel::Individual => 0.0,
+                };
+
+                let aura_color = match llama.consciousness_level {
+                    ConsciousnessLevel::Pack => [0.0, 1.0, 0.5], // Green-cyan
+                    ConsciousnessLevel::Hive => [0.5, 0.0, 1.0], // Purple
+                    ConsciousnessLevel::Meta => [1.0, 1.0, 0.0], // Yellow
+                    ConsciousnessLevel::Individual => [0.0, 0.0, 0.0],
+                };
+
+                let aura_alpha = llama.hive_connection_strength * 0.3;
+                let final_aura_color = [
+                    aura_color[0] * aura_alpha,
+                    aura_color[1] * aura_alpha,
+                    aura_color[2] * aura_alpha,
+                ];
+
+                if aura_size > 0.0 {
+                    let segments = 8;
+                    for i in 0..segments {
+                        let angle1 = (i as f32 / segments as f32) * std::f32::consts::TAU;
+                        let angle2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
+
+                        vertices.extend([
+                            Vertex { position: [x + angle1.cos() * aura_size * 0.8, y + angle1.sin() * aura_size * 0.8, 0.0], color: final_aura_color },
+                            Vertex { position: [x + angle1.cos() * aura_size, y + angle1.sin() * aura_size, 0.0], color: final_aura_color },
+                            Vertex { position: [x + angle2.cos() * aura_size, y + angle2.sin() * aura_size, 0.0], color: final_aura_color },
                         ]);
                     }
                 }
