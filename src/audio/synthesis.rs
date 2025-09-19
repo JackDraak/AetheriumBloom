@@ -179,7 +179,7 @@ impl PsychedelicSynthesizer {
         });
     }
 
-    /// Generate a single audio sample - the core of psychedelic chaos
+    /// Generate a single audio sample using procedural mood music generation
     pub fn generate_sample(&mut self,
                           sample_time: f64,
                           beat_state: &BeatState,
@@ -202,10 +202,15 @@ impl PsychedelicSynthesizer {
         // Apply mathematical modulation
         let modulated_freq = self.apply_mathematical_modulation(base_freq, sample_time, beat_state);
 
-        // Generate species-specific contributions
-        let mut sample = 0.0;
+        // Generate procedural mood music based on environment
+        let mood_music = self.generate_mood_music(modulated_freq, sample_time, environment, total_consciousness, beat_state);
 
-        // Disco Llamas: Main melodic content
+        // Generate species-specific contributions
+        let mut sample = mood_music;
+
+        // Species add subtle accents to the mood music (reduced levels)
+
+        // Disco Llamas: Melodic accents
         if let Some(&disco_count) = species_counts.get(&CompatLlamaSpecies::Disco) {
             if disco_count > 0 {
                 let disco_contribution = self.disco_llama_bank.generate_sample(
@@ -213,11 +218,11 @@ impl PsychedelicSynthesizer {
                     sample_time,
                     disco_count as f32 / 10.0, // Normalize count
                 );
-                sample += disco_contribution * 0.4;
+                sample += disco_contribution * 0.15; // Reduced from 0.4
             }
         }
 
-        // Quantum Sheep: High-frequency consciousness harmonics
+        // Quantum Sheep: High-frequency harmonics
         if let Some(&quantum_count) = species_counts.get(&CompatLlamaSpecies::Quantum) {
             if quantum_count > 0 {
                 let quantum_contribution = self.quantum_sheep_bank.generate_sample(
@@ -225,11 +230,11 @@ impl PsychedelicSynthesizer {
                     sample_time,
                     quantum_count as f32 / 5.0,
                 );
-                sample += quantum_contribution * 0.3;
+                sample += quantum_contribution * 0.1; // Reduced from 0.3
             }
         }
 
-        // BassDrop Vicunas: Massive low-frequency content
+        // BassDrop Vicunas: Bass enhancement
         if let Some(&bass_count) = species_counts.get(&CompatLlamaSpecies::BassDrop) {
             if bass_count > 0 {
                 let bass_contribution = self.bassdrop_vicuna_bank.generate_sample(
@@ -237,7 +242,7 @@ impl PsychedelicSynthesizer {
                     sample_time,
                     bass_count as f32 / 3.0,
                 );
-                sample += bass_contribution * 0.6;
+                sample += bass_contribution * 0.2; // Reduced from 0.6
             }
         }
 
@@ -363,7 +368,7 @@ impl PsychedelicSynthesizer {
 
         if self.chaos_intensity > 0.6 {
             // Gentle chorus effect instead of bit crushing
-            let chorus_delay = 0.02; // 20ms delay
+            let _chorus_delay = 0.02; // 20ms delay (unused in simplified implementation)
             let chorus_rate = 0.7; // Slow LFO
             let chorus_depth = 0.05 * config.chaos_factor;
             let chorus_lfo = (self.master_phase * chorus_rate * std::f64::consts::TAU).sin() as f32;
@@ -452,6 +457,115 @@ impl PsychedelicSynthesizer {
         texture *= 1.0 + am_modulator * am_depth;
 
         texture * 0.1 // Keep it subtle
+    }
+
+    /// Generate procedural mood music based on research into computer-generated music
+    fn generate_mood_music(&mut self, base_freq: f32, sample_time: f64, environment: &AudioEnvironment, consciousness: f32, beat_state: &BeatState) -> f32 {
+        match environment {
+            AudioEnvironment::Environmental | AudioEnvironment::Meditative => {
+                self.generate_mellow_mood_music(base_freq, sample_time, consciousness, beat_state)
+            },
+            AudioEnvironment::Psychedelic | AudioEnvironment::Electronica => {
+                self.generate_active_mood_music(base_freq, sample_time, consciousness, beat_state)
+            },
+            AudioEnvironment::HiveMind | AudioEnvironment::RealityTear => {
+                self.generate_chaotic_mood_music(base_freq, sample_time, consciousness, beat_state)
+            },
+        }
+    }
+
+    /// Mellow Mood: Dorian mode, slow tempo (60-80 BPM), gentle harmonics
+    fn generate_mellow_mood_music(&mut self, base_freq: f32, sample_time: f64, consciousness: f32, beat_state: &BeatState) -> f32 {
+        // Dorian mode intervals: [0, 2, 3, 5, 7, 9, 10] semitones
+        let dorian_intervals = [1.0, 1.122, 1.189, 1.335, 1.498, 1.682, 1.782];
+        let scale_length = dorian_intervals.len();
+
+        // Slow, mellow progression (60-80 BPM equivalent)
+        let progression_rate = 0.8 + consciousness * 0.4; // 0.8 to 1.2 Hz
+        let scale_index = ((sample_time * progression_rate as f64) as usize) % scale_length;
+        let current_interval = dorian_intervals[scale_index];
+
+        // Primary melody note
+        let melody_freq = base_freq * current_interval;
+        let melody = self.generate_sine_wave(melody_freq, self.master_phase);
+
+        // Gentle harmonic accompaniment (perfect fifth and octave)
+        let fifth_freq = melody_freq * 1.5; // Perfect fifth
+        let octave_freq = melody_freq * 0.5; // Octave down for bass
+
+        let harmony = self.generate_sine_wave(fifth_freq, self.master_phase) * 0.3 +
+                      self.generate_sine_wave(octave_freq, self.master_phase) * 0.4;
+
+        // Gentle amplitude envelope with breathing pattern
+        let breathing_rate = 0.2; // Very slow breathing
+        let envelope = 0.7 + (self.master_phase * breathing_rate * std::f64::consts::TAU).sin() as f32 * 0.3;
+
+        (melody * 0.6 + harmony) * envelope * 0.4 // Keep it soft and mellow
+    }
+
+    /// Active Mood: Major modes (Ionian/Mixolydian), dynamic tempo (120-140 BPM)
+    fn generate_active_mood_music(&mut self, base_freq: f32, sample_time: f64, consciousness: f32, beat_state: &BeatState) -> f32 {
+        // Ionian mode (major scale): [0, 2, 4, 5, 7, 9, 11] semitones
+        let major_intervals = [1.0, 1.122, 1.260, 1.335, 1.498, 1.682, 1.888];
+        let scale_length = major_intervals.len();
+
+        // Dynamic, energetic progression (120-140 BPM equivalent)
+        let progression_rate = 2.0 + consciousness * 1.3 + beat_state.intensity; // 2.0 to 4.3 Hz
+        let scale_index = ((sample_time * progression_rate as f64) as usize) % scale_length;
+        let current_interval = major_intervals[scale_index];
+
+        // Active melody with rhythmic variation
+        let melody_freq = base_freq * current_interval;
+        let rhythm_multiplier = if ((sample_time * 4.0) as usize) % 4 < 2 { 1.0 } else { 0.7 }; // 4/4 rhythm
+        let melody = self.generate_sine_wave(melody_freq, self.master_phase) * rhythm_multiplier;
+
+        // Energetic chord progression (major triads)
+        let third_freq = melody_freq * 1.260; // Major third
+        let fifth_freq = melody_freq * 1.498; // Perfect fifth
+
+        let chord = self.generate_sine_wave(melody_freq, self.master_phase) * 0.5 +
+                    self.generate_sine_wave(third_freq, self.master_phase) * 0.3 +
+                    self.generate_sine_wave(fifth_freq, self.master_phase) * 0.3;
+
+        // Dynamic energy with beat synchronization
+        let energy_envelope = 0.8 + beat_state.intensity * 0.4;
+        let rhythmic_pulse = if beat_state.is_beat_drop { 1.3 } else { 1.0 };
+
+        (melody * 0.7 + chord * 0.5) * energy_envelope * rhythmic_pulse * 0.5
+    }
+
+    /// Chaotic Mood: Controlled mathematical chaos, complex polyrhythms
+    fn generate_chaotic_mood_music(&mut self, base_freq: f32, sample_time: f64, consciousness: f32, _beat_state: &BeatState) -> f32 {
+        // Use mathematical chaos (Lorenz attractor-inspired) for musical structure
+        let chaos_x = (sample_time * 0.3).sin() * (sample_time * 0.7).cos();
+        let chaos_y = (sample_time * 0.5).sin() * (sample_time * 1.1).cos();
+
+        // Convert chaos to musical intervals (still within musical bounds)
+        let chaos_interval = 1.0 + chaos_x.abs() as f32 * 0.8; // 1.0 to 1.8 ratio
+        let secondary_interval = 1.0 + chaos_y.abs() as f32 * 1.2; // 1.0 to 2.2 ratio
+
+        // Polyrhythmic structure: 3 against 4 against 5
+        let rhythm_3 = ((sample_time * 3.0) % 1.0 > 0.7) as i32 as f32;
+        let rhythm_4 = ((sample_time * 4.0) % 1.0 > 0.6) as i32 as f32;
+        let rhythm_5 = ((sample_time * 5.0) % 1.0 > 0.8) as i32 as f32;
+
+        // Multiple frequency layers with mathematical relationships
+        let primary_freq = base_freq * chaos_interval;
+        let secondary_freq = base_freq * secondary_interval;
+        let fibonacci_freq = base_freq * 1.618; // Golden ratio
+
+        // Generate complex but musical texture
+        let primary_layer = self.generate_sine_wave(primary_freq, self.master_phase) * rhythm_3 * 0.4;
+        let secondary_layer = self.generate_sine_wave(secondary_freq, self.master_phase) * rhythm_4 * 0.3;
+        let fibonacci_layer = self.generate_sine_wave(fibonacci_freq, self.master_phase) * rhythm_5 * 0.2;
+
+        // Controlled chaos envelope that stays musical
+        let chaos_envelope = 0.6 + (chaos_x * chaos_y).abs() as f32 * 0.4;
+        let consciousness_modulation = 1.0 + consciousness * 0.3;
+
+        // Combine layers with controlled chaos
+        let chaotic_sum = primary_layer + secondary_layer + fibonacci_layer;
+        chaotic_sum * chaos_envelope * consciousness_modulation * 0.4
     }
 
     fn generate_supersaw(&self, frequency: f32, phase: f64) -> f32 {

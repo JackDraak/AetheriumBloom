@@ -87,6 +87,7 @@ pub struct AudioConsciousnessEngine {
     audio_buffer: Arc<Mutex<VecDeque<f32>>>,
     sample_rate: f32,
     cosmic_time: f64,
+    audio_time: f64,  // Independent audio time tracking
 
     // User controls for audio parameters
     controls: AudioControls,
@@ -245,6 +246,7 @@ impl AudioConsciousnessEngine {
             audio_buffer,
             sample_rate,
             cosmic_time: 0.0,
+            audio_time: 0.0,
             controls: AudioControls::default(),
             total_consciousness: 0.0,
             llama_positions: Vec::new(),
@@ -326,71 +328,81 @@ impl AudioConsciousnessEngine {
     }
 
     fn generate_audio_samples(&mut self, beat_state: &BeatState) {
-        // If audio is disabled, generate silence
-        if !self.controls.enabled {
-            if let Ok(mut buffer) = self.audio_buffer.lock() {
-                for _ in 0..512 {
-                    buffer.push_back(0.0);
-                    if buffer.len() > 16384 {
-                        buffer.pop_front();
-                    }
-                }
-            }
+        // Check current buffer level to determine how many samples to generate
+        let current_buffer_size = if let Ok(buffer) = self.audio_buffer.lock() {
+            buffer.len()
+        } else {
             return;
+        };
+
+        // Keep buffer well-filled - generate more samples when buffer gets low
+        let target_buffer_size = 4096; // Target buffer size
+        let min_buffer_size = 1024;    // Minimum before generating more
+
+        if current_buffer_size >= target_buffer_size {
+            return; // Buffer is full enough
         }
 
         // Calculate how many samples we need to generate
-        let buffer_size = 512; // Generate in chunks for real-time performance
+        let samples_needed = target_buffer_size - current_buffer_size;
+        let buffer_size = samples_needed.min(2048); // Don't generate too many at once
         let mut samples = Vec::with_capacity(buffer_size);
 
-        // Apply user speed control to time progression
-        let speed_factor = self.controls.speed;
-        let effective_environment = self.get_effective_environment_for_mode();
+        // If audio is disabled, generate silence
+        if !self.controls.enabled {
+            for _ in 0..buffer_size {
+                samples.push(0.0);
+            }
+        } else {
+            // Apply user speed control to time progression
+            let speed_factor = self.controls.speed;
+            let effective_environment = self.get_effective_environment_for_mode();
 
-        for i in 0..buffer_size {
-            let base_sample_time = self.cosmic_time + (i as f64 / self.sample_rate as f64);
-            let sample_time = base_sample_time * speed_factor as f64;
+            for i in 0..buffer_size {
+                // Use independent audio time for continuous sample generation
+                let sample_time = (self.audio_time + (i as f64 / self.sample_rate as f64)) * speed_factor as f64;
 
-            // Generate base consciousness-driven audio
-            let base_sample = self.synthesizer.generate_sample(
-                sample_time,
-                beat_state,
-                &effective_environment,
-                self.total_consciousness,
-                &self.species_counts,
-            );
+                // Generate base consciousness-driven audio
+                let base_sample = self.synthesizer.generate_sample(
+                    sample_time,
+                    beat_state,
+                    &effective_environment,
+                    self.total_consciousness,
+                    &self.species_counts,
+                );
 
-            // Apply species-specific modulations
-            let modulated_sample = self.consciousness_mapper.apply_species_modulation(
-                base_sample,
-                sample_time,
-                &self.llama_positions,
-                &self.species_counts,
-            );
+                // Apply species-specific modulations
+                let modulated_sample = self.consciousness_mapper.apply_species_modulation(
+                    base_sample,
+                    sample_time,
+                    &self.llama_positions,
+                    &self.species_counts,
+                );
 
-            // Apply reality distortion effects with mode-based intensity
-            let distortion_intensity = self.get_distortion_intensity_for_mode();
-            let distorted_sample = self.distortion_processor.process_sample_with_intensity(
-                modulated_sample,
-                sample_time,
-                beat_state,
-                distortion_intensity,
-            );
+                // Apply reality distortion effects with mode-based intensity
+                let distortion_intensity = self.get_distortion_intensity_for_mode();
+                let distorted_sample = self.distortion_processor.process_sample_with_intensity(
+                    modulated_sample,
+                    sample_time,
+                    beat_state,
+                    distortion_intensity,
+                );
 
-            // Apply environmental effects
-            let environmental_sample = self.environment_zones.process_sample(
-                distorted_sample,
-                sample_time,
-                &effective_environment,
-            );
+                // Apply environmental effects
+                let environmental_sample = self.environment_zones.process_sample(
+                    distorted_sample,
+                    sample_time,
+                    &effective_environment,
+                );
 
-            // Apply user volume control
-            let volume_adjusted = environmental_sample * self.controls.volume;
+                // Apply user volume control
+                let volume_adjusted = environmental_sample * self.controls.volume;
 
-            // Final safety limiting
-            let safe_sample = self.safety_limiter.limit_sample(volume_adjusted);
+                // Final safety limiting
+                let safe_sample = self.safety_limiter.limit_sample(volume_adjusted);
 
-            samples.push(safe_sample);
+                samples.push(safe_sample);
+            }
         }
 
         // Push to audio buffer for playback
@@ -404,6 +416,9 @@ impl AudioConsciousnessEngine {
                 }
             }
         }
+
+        // Advance audio time for continuous generation
+        self.audio_time += buffer_size as f64 / self.sample_rate as f64;
     }
 
     /// Handle chaos events from the main simulation
