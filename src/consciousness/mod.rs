@@ -164,7 +164,8 @@ impl LlamaManager {
 
         // Update all llamas
         let entities: Vec<EntityId> = self.world.query::<PsychedelicLlama>()
-            .map(|(id, _)| id)
+            .iter()
+            .map(|(id, _)| *id)
             .collect();
 
         for entity_id in entities {
@@ -234,6 +235,7 @@ impl LlamaManager {
 
     pub fn get_render_data(&self) -> Vec<LlamaRenderData> {
         self.world.query::<PsychedelicLlama>()
+            .iter()
             .map(|(_, llama)| LlamaRenderData {
                 position: llama.position,
                 color_wavelength: llama.color_wavelength,

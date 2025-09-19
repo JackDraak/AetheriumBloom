@@ -466,7 +466,7 @@ impl ChaosEngine {
 
             // Phase 4: Record user action for co-evolution learning
             let user_action = UserAction {
-                action_type: ActionType::Click,
+                action_type: ActionType::MouseClick,
                 timestamp: self.time as f64,
                 duration: 0.1,
                 intensity: chaos_amount,
@@ -633,7 +633,7 @@ impl ChaosEngine {
 
                 crate::audio::CompatLlamaRenderData {
                     position: llama.position,
-                    color_wavelength: Vec2::new(llama.hue, llama.resonance),
+                    color_wavelength: Vec2::new(llama.color.x, llama.harmonic_resonance),
                     trip_intensity: llama.trip_intensity,
                     reality_distortion: llama.reality_distortion,
                     species,
@@ -1894,9 +1894,9 @@ impl ChaosEngine {
         }
 
         // Map fractal complexity to audio
-        if self.fractal_complexity > 0.7 {
+        if self.reality_distortion.emergence_amplification > 0.7 {
             // High fractal complexity creates reality tears
-            let tear_strength = (self.fractal_complexity - 0.5) * 2.0;
+            let tear_strength = (self.reality_distortion.emergence_amplification - 0.5) * 2.0;
             let chaos_event = crate::audio::CompatChaosEvent::RealityTear {
                 strength: tear_strength,
                 position: Vec2::new(

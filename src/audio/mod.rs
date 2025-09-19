@@ -17,6 +17,7 @@ pub mod environment;
 pub mod safety;
 
 use cpal::{Device, Stream, StreamConfig, Sample, FromSample};
+use cpal::traits::{HostTrait, DeviceTrait, StreamTrait};
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
 use glam::Vec2;
@@ -64,7 +65,7 @@ pub struct ConsciousnessAudioMapper;
 
 impl ConsciousnessAudioMapper {
     pub fn new() -> Self { Self }
-    pub fn update(&mut self, _time: f64, _beat: &mathematics::BeatState, _llamas: &[CompatLlamaRenderData]) {}
+    pub fn update(&mut self, _time: f64, _beat: &BeatState, _llamas: &[CompatLlamaRenderData]) {}
     pub fn apply_species_modulation(&mut self, sample: f32, _time: f64, _positions: &[Vec2], _counts: &std::collections::HashMap<CompatLlamaSpecies, u32>) -> f32 { sample }
     pub fn get_fundamental_frequency(&self) -> f32 { 440.0 }
     pub fn get_hive_coherence(&self) -> f32 { 0.5 }
@@ -257,7 +258,7 @@ impl AudioConsciousnessEngine {
     /// Main update - transforms consciousness state into audio chaos
     pub fn update(&mut self,
                   cosmic_time: f64,
-                  beat_state: &mathematics::BeatState,
+                  beat_state: &BeatState,
                   llama_data: &[CompatLlamaRenderData],
                   total_consciousness: f32) {
 

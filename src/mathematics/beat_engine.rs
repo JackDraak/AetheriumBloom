@@ -75,7 +75,7 @@ impl BeatEngine {
         }
 
         // Generate prime at current position
-        let prime = self.prime_sieve.nth(self.last_prime_index % 1000); // Cycle through first 1000 primes
+        let prime = self.prime_sieve.iter().nth(self.last_prime_index % 1000).unwrap_or(2); // Cycle through first 1000 primes
 
         // Convert prime to influence factor (0.0 to 1.0)
         let normalized_prime = (prime % 100) as f32 / 100.0;
@@ -158,7 +158,7 @@ impl BeatEngine {
 
             // Apply prime number filtering
             let prime_index = i % 100;
-            let prime = self.prime_sieve.nth(prime_index);
+            let prime = self.prime_sieve.iter().nth(prime_index).unwrap_or(2);
             let prime_factor = (prime % 12) as f32 / 12.0;
 
             let modulated_harmonic = harmonic * (1.0 + prime_factor * 0.1);

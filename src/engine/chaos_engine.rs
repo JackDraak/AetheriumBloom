@@ -1,6 +1,6 @@
 use glam::Vec2;
 use fastrand;
-use crate::entities::Llama;
+use crate::entities::{Llama, ConsciousnessLevel};
 
 // Phase 2: Mathematical Chaos Engine Components
 
