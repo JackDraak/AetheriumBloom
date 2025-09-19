@@ -118,7 +118,7 @@ impl BeatEngine {
         // Accumulator influence
         let accumulator_boost = (self.beat_accumulator * 0.1).min(0.5);
 
-        (base_intensity * prime_modulation + chaos_factor * 0.3 + accumulator_boost).min(1.0)
+        (base_intensity * prime_modulation + chaos_factor as f32 * 0.3 + accumulator_boost).min(1.0)
     }
 
     fn calculate_cosmic_frequency(&self, cosmic_time: f64, prime_factor: f32) -> f32 {

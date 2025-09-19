@@ -86,14 +86,14 @@ impl RealityField {
                 }
                 TearType::BeatDropRift => {
                     // Pulse with beat rhythm
-                    tear.strength = ((age * 4.0).sin().abs() * 0.5 + 0.5) *
-                                  (1.0 - (age * 0.2).min(1.0)) as f32;
+                    tear.strength = (((age * 4.0).sin().abs() * 0.5 + 0.5) *
+                                  (1.0 - (age * 0.2).min(1.0))) as f32;
                 }
                 TearType::ChaosVortex => {
                     // Chaotic swirling motion
                     tear.radius = 20.0 + (age * 3.0).sin() * 10.0;
-                    tear.strength = ((age * 7.0).cos().abs() * 0.3 + 0.7) *
-                                  (1.0 - (age * 0.1).min(1.0)) as f32;
+                    tear.strength = (((age * 7.0).cos().abs() * 0.3 + 0.7) *
+                                  (1.0 - (age * 0.1).min(1.0))) as f32;
                 }
             }
         }

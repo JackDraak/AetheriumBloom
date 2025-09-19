@@ -10,6 +10,9 @@ pub struct VisualEnvironmentState {
     pub brightness_level: f32,
     pub flash_rate: f32,
     pub consciousness_visibility: f32,
+    pub movement_intensity: f32,
+    pub dominant_colors: Vec<f32>,
+    pub complexity_level: f32,
 }
 
 /// Audio environment state for user action context
@@ -18,6 +21,7 @@ pub struct AudioEnvironmentState {
     pub beat_intensity: f32,
     pub frequency_distribution: HashMap<String, f32>,
     pub rhythm_coherence: f32,
+    pub harmonic_complexity: f32,
 }
 
 /// Comprehensive user co-evolution system that adapts the digital ecosystem to user preferences
@@ -61,6 +65,7 @@ pub struct UserAction {
     pub intensity: f32,
     pub duration: f32,
     pub context: ActionContext,
+    pub spatial_coordinates: Option<Vec2>,
 }
 
 #[derive(Debug, Clone)]
@@ -80,6 +85,9 @@ pub struct ActionContext {
     pub system_state: HashMap<String, f32>,
     pub environmental_factors: HashMap<String, f32>,
     pub user_state_indicators: HashMap<String, f32>,
+    pub visual_environment: VisualEnvironmentState,
+    pub audio_environment: AudioEnvironmentState,
+    pub concurrent_actions: Vec<ActionType>,
 }
 
 /// Temporal characteristics of user interaction patterns
@@ -528,6 +536,42 @@ pub struct AdaptationEngine {
     pub performance_monitoring: PerformanceMonitoring,
 }
 
+impl Default for AdaptationEngine {
+    fn default() -> Self {
+        Self {
+            adaptation_parameters: HashMap::new(),
+            adaptation_strategies: Vec::new(),
+            real_time_adaptations: HashMap::new(),
+            adaptation_history: AdaptationHistory {
+                adaptation_log: VecDeque::new(),
+                effectiveness_tracking: EffectivenessTracking::default(),
+                pattern_analysis: AdaptationPatternAnalysis::default(),
+            },
+            performance_monitoring: PerformanceMonitoring {
+                adaptation_latency: 0.0,
+                system_overhead: 0.0,
+                user_experience_impact: 0.0,
+                resource_utilization: HashMap::new(),
+            },
+        }
+    }
+}
+
+impl AdaptationEngine {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn update(&mut self, dt: f32, interaction_learning: &InteractionLearning,
+                  preference_memory: &PreferenceMemory) {
+        // Adapt parameters based on interaction patterns and preferences
+        for param in self.adaptation_parameters.values_mut() {
+            let diff = param.target_value - param.current_value;
+            param.current_value += diff * param.adaptation_rate * dt;
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct AdaptationParameter {
     pub parameter_name: String,
@@ -587,7 +631,7 @@ pub struct AdaptationRecord {
     pub effectiveness_score: Option<f32>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct EffectivenessTracking {
     pub short_term_effectiveness: f32,
     pub long_term_effectiveness: f32,
@@ -595,7 +639,7 @@ pub struct EffectivenessTracking {
     pub objective_metrics_improvement: f32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct AdaptationPatternAnalysis {
     pub successful_patterns: Vec<SuccessfulPattern>,
     pub failed_patterns: Vec<FailedPattern>,
@@ -633,6 +677,15 @@ pub struct PreferenceMemory {
     pub contextual_preferences: HashMap<String, ContextualPreferenceSet>,
     pub preference_conflicts: Vec<PreferenceConflict>,
     pub memory_consolidation: MemoryConsolidation,
+}
+
+impl PreferenceMemory {
+    pub fn update(&mut self, dt: f32, _user_interaction_intensity: f32) {
+        // Placeholder implementation - could consolidate preferences over time
+        for preference in self.long_term_preferences.values_mut() {
+            preference.stability_score = (preference.stability_score * 0.999 + 0.001).min(1.0);
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -731,6 +784,16 @@ pub struct EvolutionPathways {
     pub active_pathways: Vec<ActivePathway>,
     pub pathway_evaluation: PathwayEvaluation,
     pub evolutionary_pressures: EvolutionaryPressures,
+}
+
+impl EvolutionPathways {
+    pub fn update(&mut self, dt: f32, interaction_learning: &InteractionLearning,
+                  adaptation_engine: &AdaptationEngine) {
+        // Update pathways based on interaction patterns and adaptation state
+        for pathway in &mut self.active_pathways {
+            pathway.progress = (pathway.progress + dt * 0.01).min(1.0);
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -886,6 +949,16 @@ pub struct PersonalizationMatrix {
     pub user_profile: UserProfile,
     pub adaptation_weights: HashMap<String, f32>,
     pub personalization_effectiveness: PersonalizationEffectiveness,
+}
+
+impl PersonalizationMatrix {
+    pub fn update(&mut self, dt: f32, preference_memory: &PreferenceMemory,
+                  evolution_pathways: &EvolutionPathways) {
+        // Update personalization based on preferences and evolutionary pathways
+        for weight in self.adaptation_weights.values_mut() {
+            *weight = (*weight * 0.999 + 0.001).clamp(0.0, 1.0);
+        }
+    }
 }
 
 #[derive(Debug)]

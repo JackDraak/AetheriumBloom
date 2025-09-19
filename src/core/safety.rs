@@ -243,7 +243,7 @@ impl ChaosDampener {
         }
 
         // Set cooldown for this entity
-        let cooldown_end = current_time + duration + safety_constants::MIN_FLASH_INTERVAL as f64;
+        let cooldown_end = current_time + duration as f64 + safety_constants::MIN_FLASH_INTERVAL as f64;
         self.entity_flash_cooldowns.insert(entity_id, cooldown_end);
     }
 

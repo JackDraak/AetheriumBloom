@@ -16,7 +16,7 @@ pub mod effects;
 pub mod environment;
 pub mod safety;
 
-use cpal::{Device, Stream, StreamConfig, Sample, FromSample};
+use cpal::{Device, Stream, StreamConfig, Sample, FromSample, SizedSample};
 use cpal::traits::{HostTrait, DeviceTrait, StreamTrait};
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
@@ -508,7 +508,7 @@ fn build_stream<T>(
     audio_buffer: Arc<Mutex<VecDeque<f32>>>,
 ) -> anyhow::Result<Stream>
 where
-    T: Sample + FromSample<f32> + Send + 'static,
+    T: Sample + FromSample<f32> + SizedSample + Send + 'static,
 {
     let channels = config.channels as usize;
 

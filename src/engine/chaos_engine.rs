@@ -1,6 +1,6 @@
 use glam::Vec2;
 use fastrand;
-use crate::entities::{Llama, ConsciousnessLevel};
+use crate::entities::{Llama, ConsciousnessLevel, SpeciesType};
 
 // Phase 2: Mathematical Chaos Engine Components
 
@@ -50,7 +50,7 @@ impl ChaosDecisionEngine {
         }
     }
 
-    fn calculate_prime_chaos(&self, cosmic_time: f64) -> f32 {
+    pub fn calculate_prime_chaos(&self, cosmic_time: f64) -> f32 {
         let mut chaos = 0.0;
         for (i, &prime) in self.prime_generators.iter().enumerate() {
             let freq = prime as f32 / 1000.0;
@@ -76,7 +76,7 @@ impl ChaosDecisionEngine {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct DecisionVector {
     pub movement_urgency: f32,
     pub exploration_drive: f32,
@@ -107,21 +107,6 @@ pub struct ConsciousnessHierarchy {
     pub war_efficiency: f32,           // Combat effectiveness modifier
     pub hive_connection_strength: f32, // How strongly hive members are connected
     pub absorption_capacity: f32,      // Ability to absorb other consciousness
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum ConsciousnessLevel {
-    Individual,
-    Pack,
-    Hive,
-    Meta,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum SpeciesType {
-    DiscoLlama,
-    QuantumSheep,
-    HypnoCamel,
 }
 
 #[derive(Debug, Clone)]
@@ -257,6 +242,14 @@ impl AdvancedBeatEngine {
         for harmonic in &mut self.harmonic_layers {
             *harmonic *= 1.0 + chaos_amount * 0.05;
         }
+    }
+
+    pub fn get_prime_factor(&self) -> u64 {
+        self.prime_list[0]
+    }
+
+    pub fn get_time_accumulator(&self) -> f64 {
+        self.time_accumulator
     }
 }
 

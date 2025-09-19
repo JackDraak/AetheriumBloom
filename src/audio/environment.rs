@@ -228,7 +228,7 @@ impl AudioEnvironmentZones {
         for (i, center) in zone_centers.iter().enumerate() {
             // Count llamas in this zone
             let llamas_in_zone: Vec<Vec2> = llama_positions.iter()
-                .filter(|&&pos| (pos - center).length() <= self.consciousness_influence_radius)
+                .filter(|&&pos| (pos - *center).length() <= self.consciousness_influence_radius)
                 .copied()
                 .collect();
 

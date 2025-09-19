@@ -95,6 +95,28 @@ impl ConsciousnessCrystal {
 
         hsv_to_rgb_vec3(glam::Vec3::new(base_hue, saturation, brightness))
     }
+
+    /// Check if conditions are met to trigger mutation events
+    pub fn should_trigger_mutation(&self) -> bool {
+        self.chaos_accumulation > self.mutation_threshold
+    }
+
+    /// Reset chaos accumulation after mutation event
+    pub fn reset_chaos_for_mutation(&mut self) {
+        self.chaos_accumulation = 0.0;
+    }
+
+    /// Get territorial effects for entities in different zones
+    pub fn get_territory_effects(&self, position: glam::Vec2) -> f32 {
+        // Find which territory zone this position is in
+        for zone in &self.territory_zones {
+            let distance = position.distance(zone.center);
+            if distance <= zone.radius {
+                return zone.consciousness_amplification;
+            }
+        }
+        1.0 // Default no amplification
+    }
 }
 
 /// Environmental consciousness field - affects entity behavior

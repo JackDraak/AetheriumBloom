@@ -160,6 +160,16 @@ impl Llama {
                         }
                         self.consciousness += harvested * 0.4;
                     },
+                    CrystalType::Resonance => {
+                        self.harmonic_resonance += harvested * 0.5;
+                        self.trip_intensity += harvested * 0.3;
+                        self.consciousness += harvested * 0.2;
+                    },
+                    CrystalType::Chaos => {
+                        self.exploration_drive += harvested * 0.4;
+                        self.reality_distortion += harvested * 0.3;
+                        self.prime_chaos_factor += harvested * 0.2;
+                    },
                 }
 
                 // Store crystal type for mutations
@@ -226,6 +236,18 @@ impl Llama {
                     }
                     self.consciousness += mutation_strength * 0.5;
                 },
+                CrystalType::Resonance => {
+                    // Harmonic resonance evolution
+                    self.personality_matrix[5] += mutation_strength * 0.3; // Artistic/musical affinity
+                    self.harmonic_resonance += mutation_strength * 0.4;
+                    self.trip_intensity += mutation_strength * 0.2;
+                },
+                CrystalType::Chaos => {
+                    // Chaos acceptance evolution
+                    self.personality_matrix[0] += mutation_strength * 0.3; // Adventurousness
+                    self.exploration_drive += mutation_strength * 0.4;
+                    self.reality_distortion += mutation_strength * 0.3;
+                },
             }
         }
 
@@ -245,6 +267,12 @@ impl Llama {
             trip_intensity: self.trip_intensity,
             reality_distortion: self.reality_distortion,
         }
+    }
+
+    /// Main update method called from simulation loop
+    pub fn update(&mut self, dt: f32, beat_intensity: f32, all_llamas: &[Llama],
+                  my_index: usize, cosmic_time: f64) {
+        self.update_behavior(dt, beat_intensity, all_llamas, my_index, cosmic_time);
     }
 }
 

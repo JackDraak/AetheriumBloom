@@ -190,12 +190,11 @@ impl PsychedelicSynthesizer {
 
         self.master_phase += 1.0 / self.sample_rate as f64;
 
-        // Get base frequency from environment configuration
-        let base_frequency = {
-            let config = self.environment_configs.get(environment)
-                .unwrap_or(&self.environment_configs[&AudioEnvironment::Environmental]);
-            config.base_frequency
-        };
+        // Get environment configuration
+        let config = self.environment_configs.get(environment)
+            .unwrap_or(&self.environment_configs[&AudioEnvironment::Environmental])
+            .clone();
+        let base_frequency = config.base_frequency;
 
         // Calculate consciousness-driven base frequency
         let consciousness_factor = (total_consciousness / 100.0).min(2.0);
@@ -244,10 +243,10 @@ impl PsychedelicSynthesizer {
         }
 
         // Apply environment-specific processing
-        sample = self.apply_environment_processing(sample, config, beat_state);
+        sample = self.apply_environment_processing(sample, &config, beat_state);
 
         // Apply chaos injection
-        sample = self.apply_chaos_injection(sample, config, beat_state);
+        sample = self.apply_chaos_injection(sample, &config, beat_state);
 
         // Handle special triggers
         sample = self.handle_special_triggers(sample, sample_time);

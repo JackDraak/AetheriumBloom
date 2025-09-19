@@ -468,6 +468,10 @@ impl ChaosEngine {
             let user_action = UserAction {
                 action_type: ActionType::MouseClick,
                 timestamp: self.time as f64,
+                position: Some(Vec2::new(
+                    fastrand::f32() * 1200.0,
+                    fastrand::f32() * 800.0,
+                )),
                 duration: 0.1,
                 intensity: chaos_amount,
                 spatial_coordinates: Some(Vec2::new(
@@ -482,8 +486,25 @@ impl ChaosEngine {
                         state.insert("llama_count".to_string(), self.llamas.len() as f32);
                         state
                     },
+                    environmental_factors: {
+                        let mut factors = HashMap::new();
+                        factors.insert("reality_distortion".to_string(), self.reality_distortion.emergence_amplification);
+                        factors.insert("mutation_rate".to_string(), self.ecosystem.chaos_accumulation);
+                        factors.insert("temperature".to_string(), 0.5); // Neutral environmental temperature
+                        factors
+                    },
+                    user_state_indicators: {
+                        let mut indicators = HashMap::new();
+                        indicators.insert("interaction_frequency".to_string(), 0.5); // Default frequency
+                        indicators.insert("session_duration".to_string(), self.time / 60.0); // Session time in minutes
+                        indicators.insert("engagement_level".to_string(), chaos_amount);
+                        indicators
+                    },
                     visual_environment: VisualEnvironmentState {
-                        dominant_colors: self.llamas.iter().take(3).map(|l| Vec3::new(l.color.x, l.color.y, 0.6)).collect(),
+                        brightness_level: (self.total_consciousness / 100.0).min(1.0),
+                        dominant_colors: self.llamas.iter().take(3)
+                            .flat_map(|l| vec![l.color.x, l.color.y, 0.6])
+                            .collect(),
                         complexity_level: self.reality_distortion.emergence_amplification,
                         movement_intensity: chaos_amount,
                         flash_rate: 0.0, // Safe default
@@ -615,11 +636,11 @@ impl ChaosEngine {
         // Phase 6: PSYCHEDELIC AUDIO CONSCIOUSNESS UPDATE - "Maximum Decibels, Minimum Code"
         if let Some(ref mut audio_engine) = self.audio_consciousness {
             // Create beat state from advanced beat engine
-            let beat_state = crate::audio::mathematics::BeatState {
+            let beat_state = crate::mathematics::BeatState {
                 is_beat_drop: self.beat_intensity > 0.8,
                 intensity: self.beat_intensity,
                 phase: self.time as f64,
-                prime_factor: self.advanced_beat_engine.prime_factors[0],
+                prime_factor: self.advanced_beat_engine.get_prime_factor(),
                 cosmic_frequency: 432.0 + self.total_consciousness * 2.0,
             };
 
@@ -745,7 +766,7 @@ impl ChaosEngine {
         self.uniforms.beat_intensity = self.beat_intensity;
         self.uniforms.screen_resolution = [self.config.width as f32, self.config.height as f32];
         self.uniforms.beat_frequency = self.advanced_beat_engine.primary_rhythm;
-        self.uniforms.cosmic_phase = self.advanced_beat_engine.time_accumulator as f32;
+        self.uniforms.cosmic_phase = self.advanced_beat_engine.get_time_accumulator() as f32;
 
         // Write updated uniforms to buffer
         self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[self.uniforms]));
@@ -761,7 +782,7 @@ impl ChaosEngine {
         // Generate vertices for all llamas with Phase 2 species-enhanced visuals AND SAFETY FILTERING
         // Estimate total vertices for predictive allocation
         let estimated_vertices_per_llama = 6; // Each llama is a quad (2 triangles)
-        let estimated_crystal_vertices = self.ecosystem.crystals.len() * 6; // Crystal vertices
+        let estimated_crystal_vertices = self.ecosystem.crystal_formations.len() * 6; // Crystal vertices
         let estimated_effect_vertices = self.llamas.len() * 20; // Rough estimate for various effects
 
         // Check budget allocations
@@ -1885,7 +1906,7 @@ impl ChaosEngine {
         }
 
         // Map beat drops to audio events
-        if self.beat_intensity > 0.95 && self.beat_accumulator > 0.8 {
+        if self.beat_intensity > 0.95 {
             // Major beat drop - spawn audio event
             let chaos_event = crate::audio::CompatChaosEvent::LlamaSpawned {
                 consciousness: self.beat_intensity * 10.0,
