@@ -3,7 +3,8 @@
 
 use glam::Vec2;
 use crate::entities::species::{SpeciesType, ConsciousnessLevel};
-use crate::simple::{ChaosDecisionEngine, CrystalType, ZoneType, TerritoryEffects, ConsciousnessCrystal};
+use crate::engine::ChaosDecisionEngine;
+use crate::simulation::{CrystalType, ZoneType, ConsciousnessField, ConsciousnessCrystal, TerritoryEffects};
 
 /// Main llama entity with all consciousness and behavioral systems
 #[derive(Clone)]

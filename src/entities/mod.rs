@@ -1,7 +1,9 @@
 // Entities module containing llamas, species, and consciousness systems
 
-pub mod species;
 pub mod llama;
+pub mod llama_behavior;
+pub mod species;
 
-pub use species::{SpeciesType, SpeciesConfig, ConsciousnessLevel};
 pub use llama::Llama;
+pub use llama_behavior::*;
+pub use species::{SpeciesType, SpeciesConfig, ConsciousnessLevel};

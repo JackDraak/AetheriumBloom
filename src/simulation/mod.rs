@@ -1,7 +1,7 @@
 // Simulation module containing game state and ecosystem management systems
 
-pub mod ecosystem;
 pub mod consciousness_systems;
+pub mod meta_consciousness;
 
-pub use ecosystem::*;
 pub use consciousness_systems::*;
+pub use meta_consciousness::*;
