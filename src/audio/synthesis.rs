@@ -142,16 +142,16 @@ impl PsychedelicSynthesizer {
             chaos_factor: 0.3,
         });
 
-        // Electronica: FULL EDM CHAOS - THE SPIRIT ANIMAL
+        // Electronica: Energizing EDM with musical structure
         self.environment_configs.insert(AudioEnvironment::Electronica, EnvironmentSynthConfig {
             base_frequency: 440.0,
             harmonic_count: 16,
-            noise_level: 0.4,
-            distortion_amount: 0.7,
+            noise_level: 0.15, // Reduced harsh noise
+            distortion_amount: 0.3, // Gentler distortion
             reverb_amount: 0.4,
             bass_boost: 1.0,
             treble_boost: 0.8,
-            chaos_factor: 0.6,
+            chaos_factor: 0.3, // Reduced chaos for musicality
         });
 
         // HiveMind: Collective consciousness harmonics
@@ -166,16 +166,16 @@ impl PsychedelicSynthesizer {
             chaos_factor: 0.2,
         });
 
-        // RealityTear: When consciousness breaks reality
+        // RealityTear: Intense but musical consciousness expansion
         self.environment_configs.insert(AudioEnvironment::RealityTear, EnvironmentSynthConfig {
-            base_frequency: 666.0, // Maximum chaos
-            harmonic_count: 64,
-            noise_level: 0.8,
-            distortion_amount: 1.0,
-            reverb_amount: 0.2,
-            bass_boost: 1.5,
-            treble_boost: 1.2,
-            chaos_factor: 1.0,
+            base_frequency: 432.0, // Changed to healing frequency
+            harmonic_count: 32, // Reduced from 64
+            noise_level: 0.2, // Drastically reduced
+            distortion_amount: 0.4, // Much gentler
+            reverb_amount: 0.6, // More reverb for spaciousness
+            bass_boost: 0.8, // Reduced
+            treble_boost: 0.6, // Reduced
+            chaos_factor: 0.4, // Much reduced chaos
         });
     }
 
@@ -244,8 +244,8 @@ impl PsychedelicSynthesizer {
         // Apply environment-specific processing
         sample = self.apply_environment_processing(sample, &config, beat_state);
 
-        // Apply chaos injection
-        sample = self.apply_chaos_injection(sample, &config, beat_state);
+        // Apply musical enhancement effects
+        sample = self.apply_musical_effects(sample, &config, beat_state);
 
         // Handle special triggers
         sample = self.handle_special_triggers(sample, sample_time);
@@ -319,10 +319,10 @@ impl PsychedelicSynthesizer {
             processed += self.generate_harmonic_content(config.base_frequency, config.harmonic_count) * 0.3;
         }
 
-        // Add environment-specific noise
+        // Replace random noise with structured harmonic texture
         if config.noise_level > 0.0 {
-            let noise = (fastrand::f32() - 0.5) * 2.0;
-            processed += noise * config.noise_level * 0.1;
+            let musical_texture = self.generate_musical_texture(config.base_frequency, config.noise_level);
+            processed += musical_texture * 0.1;
         }
 
         // Apply bass and treble boosts
@@ -341,43 +341,44 @@ impl PsychedelicSynthesizer {
         processed
     }
 
-    fn apply_chaos_injection(&mut self, sample: f32, config: &EnvironmentSynthConfig, beat_state: &BeatState) -> f32 {
+    fn apply_musical_effects(&mut self, sample: f32, config: &EnvironmentSynthConfig, beat_state: &BeatState) -> f32 {
         if config.chaos_factor <= 0.0 {
             return sample;
         }
 
-        let mut chaotic = sample;
+        let mut musical = sample;
 
-        // Chaos intensity builds with beat intensity
+        // Transform chaos intensity into musical expression intensity
         self.chaos_intensity = (self.chaos_intensity + beat_state.intensity * 0.01).min(1.0);
         self.chaos_intensity *= 0.999; // Slow decay
 
-        // Apply various chaos effects
+        // Apply musical effects based on intensity
         if self.chaos_intensity > 0.3 {
-            // Frequency modulation chaos
-            let fm_freq = beat_state.cosmic_frequency * 0.1;
-            let fm_amount = self.chaos_intensity * config.chaos_factor;
-            let fm_modulation = (self.master_phase * fm_freq as f64 * std::f64::consts::TAU).sin() as f32;
-            chaotic *= 1.0 + fm_modulation * fm_amount * 0.3;
+            // Musical vibrato instead of chaotic FM
+            let vibrato_freq = 5.0; // 5Hz vibrato rate
+            let vibrato_amount = self.chaos_intensity * config.chaos_factor * 0.02; // Gentle modulation
+            let vibrato_modulation = (self.master_phase * vibrato_freq as f64 * std::f64::consts::TAU).sin() as f32;
+            musical *= 1.0 + vibrato_modulation * vibrato_amount;
         }
 
         if self.chaos_intensity > 0.6 {
-            // Bit crushing for digital chaos
-            let bit_reduction = (self.chaos_intensity * 8.0) as i32;
-            if bit_reduction > 0 {
-                let quantization = 2.0_f32.powi(bit_reduction);
-                chaotic = (chaotic * quantization).round() / quantization;
-            }
+            // Gentle chorus effect instead of bit crushing
+            let chorus_delay = 0.02; // 20ms delay
+            let chorus_rate = 0.7; // Slow LFO
+            let chorus_depth = 0.05 * config.chaos_factor;
+            let chorus_lfo = (self.master_phase * chorus_rate * std::f64::consts::TAU).sin() as f32;
+            let chorus_delayed = musical * (1.0 + chorus_lfo * chorus_depth);
+            musical = musical * 0.7 + chorus_delayed * 0.3;
         }
 
         if self.chaos_intensity > 0.8 {
-            // Ring modulation for extreme chaos
-            let ring_freq = beat_state.cosmic_frequency * 2.0;
-            let ring_modulator = (self.master_phase * ring_freq as f64 * std::f64::consts::TAU).sin() as f32;
-            chaotic *= ring_modulator.abs();
+            // Harmonic enhancement instead of harsh ring modulation
+            let harmonic_freq = beat_state.cosmic_frequency * 1.5; // Perfect fifth
+            let harmonic_modulator = (self.master_phase * harmonic_freq as f64 * std::f64::consts::TAU).sin() as f32;
+            musical += harmonic_modulator * config.chaos_factor * 0.2;
         }
 
-        chaotic
+        musical
     }
 
     fn handle_special_triggers(&mut self, sample: f32, sample_time: f64) -> f32 {
@@ -430,6 +431,27 @@ impl PsychedelicSynthesizer {
 
     fn generate_sine_wave(&self, frequency: f32, phase: f64) -> f32 {
         (phase * frequency as f64 * std::f64::consts::TAU).sin() as f32
+    }
+
+    fn generate_musical_texture(&self, base_frequency: f32, texture_intensity: f32) -> f32 {
+        // Generate structured harmonic texture instead of random noise
+        let mut texture = 0.0;
+
+        // Add harmonic overtones for richness
+        for i in 1..=5 {
+            let harmonic_freq = base_frequency * i as f32;
+            let harmonic_amplitude = texture_intensity / (i as f32 * i as f32); // Natural rolloff
+            let harmonic_phase = self.master_phase * harmonic_freq as f64 * std::f64::consts::TAU;
+            texture += (harmonic_phase.sin() as f32) * harmonic_amplitude;
+        }
+
+        // Add gentle amplitude modulation for organic feel
+        let am_freq = 0.3; // Slow breathing rate
+        let am_depth = texture_intensity * 0.3;
+        let am_modulator = (self.master_phase * am_freq * std::f64::consts::TAU).sin() as f32;
+        texture *= 1.0 + am_modulator * am_depth;
+
+        texture * 0.1 // Keep it subtle
     }
 
     fn generate_supersaw(&self, frequency: f32, phase: f64) -> f32 {

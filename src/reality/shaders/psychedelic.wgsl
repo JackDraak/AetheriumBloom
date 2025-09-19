@@ -38,11 +38,8 @@ var<uniform> uniforms: Uniforms;
 fn vs_main(input: VertexInput) -> VertexOutput {
     var out: VertexOutput;
 
-    // Convert screen coordinates to NDC
-    let ndc_pos = vec2<f32>(
-        (input.position.x / uniforms.screen_resolution.x) * 2.0 - 1.0,
-        1.0 - (input.position.y / uniforms.screen_resolution.y) * 2.0
-    );
+    // Input positions are already in NDC coordinates from Rust code
+    let ndc_pos = input.position.xy;
 
     // Apply species-specific vertex distortions
     let species_distorted_pos = apply_species_vertex_distortion(ndc_pos, input.position.xy, input.species_id, input.consciousness, input.trip_intensity);
