@@ -22,12 +22,12 @@ use crate::reality::{Vertex, DynamicVertexBuffer, VertexBudgetManager, BufferCon
 // === MODULAR SYSTEMS ===
 use crate::engine::safety::{SafetyConfig, FlashTracker, calculate_luminance, limit_luminance_change, is_dangerous_red, rgb_to_hsv, hsv_to_rgb_vec3};
 // === EXTRACTED MODULAR SYSTEMS ===
-use crate::engine::{ChaosDecisionEngine, DecisionVector, LlamaSnapshot, ConsciousnessMultiplicationSystem, AdvancedBeatEngine};
-use crate::entities::{SpeciesType, ConsciousnessLevel};
+use crate::engine::{ChaosDecisionEngine, DecisionVector, LlamaSnapshot, ConsciousnessMultiplicationSystem, AdvancedBeatEngine, EventDrivenArchitecture};
+use crate::entities::{Llama, SpeciesType, ConsciousnessLevel};
 use crate::communication::{EmergentCommunicationSystems, ManifestationType};
 use crate::simulation::{ConsciousnessCrystal, DigitalEcosystem, MetaConsciousnessFramework, CrystalType, ZoneType, ConsciousnessField, RealityTear, TerritoryZone};
 use crate::rendering::{PsychedelicUniforms, RealityDistortionEngine};
-use crate::user::{UserCoEvolutionSystem, UserAction, ActionType, ActionContext};
+use crate::user::{UserCoEvolutionSystem, UserAction, ActionType, ActionContext, VisualEnvironmentState, AudioEnvironmentState};
 
 // === CRITICAL SAFETY SYSTEMS FOR EPILEPSY PROTECTION ===
 
@@ -138,510 +138,11 @@ fn show_epilepsy_warning() -> WarningResponse {
 
 
 
-#[derive(Clone)]
-pub struct Llama {
-    // Core properties
-    position: Vec2,
-    velocity: Vec2,
-    color: Vec2, // hue, saturation
-    consciousness: f32,
-    trip_intensity: f32,
-
-    // Phase 1: Consciousness Depth Enhancement
-    awareness_level: f32,           // 0.0-1.0 consciousness depth
-    memory_fragments: Vec<Vec2>,    // Historical position memories (interesting locations)
-    social_bonds: Vec<usize>,       // Connections to other llamas (indices)
-    personality_matrix: [f32; 7],   // 7-dimensional personality traits
-    reality_distortion: f32,        // Local space-time manipulation factor
-
-    // Internal consciousness state
-    emotional_state: f32,           // Current emotional resonance
-    memory_intensity: f32,          // How strongly memories are forming
-    social_attraction: f32,         // Desire to be near other llamas
-    exploration_drive: f32,         // Tendency to seek new areas
-
-    // Phase 2: Mathematical Chaos Engine
-    species: SpeciesType,           // Species determines behavior patterns
-    chaos_engine: ChaosDecisionEngine, // 11D decision engine
-    quantum_state: f32,             // Quantum superposition factor
-    harmonic_resonance: f32,        // Musical mathematics coupling
-    prime_chaos_factor: f32,        // Current prime number influence
-
-    // Phase 3: Ecosystem Emergence
-    harvested_crystals: Vec<CrystalType>, // Types of crystals harvested
-    mutation_count: u32,            // How many mutations this llama has undergone
-    environmental_consciousness: f32, // Consciousness absorbed from environment
-    territory_affinity: Option<ZoneType>, // Preferred territory type
-
-    // Phase 5: Consciousness Multiplication
-    consciousness_level: ConsciousnessLevel, // Individual/Pack/Hive/Meta hierarchy
-    collective_id: Option<usize>,     // ID of collective consciousness if part of one
-    territorial_dominance: f32,       // Individual territorial control strength
-    warfare_participation: f32,       // How actively engaged in species warfare
-    absorption_resistance: f32,       // Resistance to consciousness predation
-    hive_connection_strength: f32,    // Strength of connection to hive mind
-    predation_target: Option<usize>,  // Current target for consciousness absorption
-    extinction_pressure: f32,         // Environmental pressure affecting this entity
-    war_efficiency: f32,              // Combat effectiveness in consciousness warfare
-}
 
 
 // === PHASE 4: TRANSCENDENCE PROTOCOL ===
 
-// === EVENT-DRIVEN ARCHITECTURE ===
-/// Synchronized event system for cascading effects
-#[derive(Debug)]
-pub struct EventDrivenArchitecture {
-    pub event_bus: EventBus,
-    pub cascade_engine: CascadeEngine,
-    pub synchronization_matrix: SynchronizationMatrix,
-    pub event_history: EventHistory,
-    pub system_resonance: SystemResonance,
-}
 
-#[derive(Debug)]
-pub struct EventBus {
-    pub pending_events: VecDeque<SystemEvent>,
-    pub active_events: HashMap<String, ActiveEvent>,
-    pub event_priorities: HashMap<EventType, f32>,
-    pub propagation_rules: HashMap<EventType, PropagationRule>,
-    pub event_filtering: EventFiltering,
-}
-
-#[derive(Debug, Clone)]
-pub struct SystemEvent {
-    pub event_id: String,
-    pub event_type: EventType,
-    pub source_system: SystemComponent,
-    pub target_systems: Vec<SystemComponent>,
-    pub event_data: EventData,
-    pub timestamp: f64,
-    pub priority: f32,
-    pub cascade_potential: f32,
-    pub synchronization_requirements: Vec<SynchronizationRequirement>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum EventType {
-    BeatDrop,
-    ConsciousnessSpike,
-    RealityDistortion,
-    CommunicationEmergence,
-    UserInteraction,
-    SystemResonance,
-    ChaosAmplification,
-    EnvironmentalShift,
-    EmergenceThreshold,
-    CulturalTransmission,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum SystemComponent {
-    BeatEngine,
-    ConsciousnessFramework,
-    RealityEngine,
-    CommunicationSystems,
-    DigitalEcosystem,
-    UserInterface,
-    SafetySystems,
-    VisualizationEngine,
-    AudioProcessor,
-    CoEvolutionEngine,
-}
-
-#[derive(Debug, Clone)]
-pub struct EventData {
-    pub primary_value: f32,
-    pub secondary_values: HashMap<String, f32>,
-    pub vector_data: HashMap<String, Vec2>,
-    pub entity_references: Vec<usize>,
-    pub spatial_information: Option<Vec2>,
-    pub temporal_information: Option<TemporalEventInfo>,
-}
-
-#[derive(Debug, Clone)]
-pub struct TemporalEventInfo {
-    pub duration: f32,
-    pub frequency: Option<f32>,
-    pub phase_offset: f32,
-    pub temporal_decay: f32,
-}
-
-#[derive(Debug, Clone)]
-pub struct SynchronizationRequirement {
-    pub requirement_type: SyncType,
-    pub target_system: SystemComponent,
-    pub synchronization_tolerance: f32,
-    pub priority: f32,
-}
-
-#[derive(Debug, Clone)]
-pub enum SyncType {
-    Immediate,
-    Rhythmic(f32),
-    Delayed(f32),
-    Conditional(SyncCondition),
-}
-
-#[derive(Debug, Clone)]
-pub struct SyncCondition {
-    pub condition_type: String,
-    pub threshold: f32,
-    pub current_state: f32,
-}
-
-#[derive(Debug, Clone)]
-pub struct ActiveEvent {
-    pub base_event: SystemEvent,
-    pub current_phase: EventPhase,
-    pub affected_systems: HashMap<SystemComponent, SystemState>,
-    pub cascade_events: Vec<String>,
-    pub resonance_buildup: f32,
-    pub synchronization_status: HashMap<SystemComponent, SyncStatus>,
-}
-
-#[derive(Debug, Clone)]
-pub enum EventPhase {
-    Initialization,
-    Propagation,
-    Peak,
-    Decay,
-    Completion,
-}
-
-#[derive(Debug, Clone)]
-pub struct SystemState {
-    pub activation_level: f32,
-    pub response_magnitude: f32,
-    pub state_modifications: HashMap<String, f32>,
-    pub feedback_contribution: f32,
-}
-
-#[derive(Debug, Clone)]
-pub enum SyncStatus {
-    Pending,
-    InProgress,
-    Synchronized,
-    Desynchronized,
-    Failed,
-}
-
-#[derive(Debug)]
-pub struct PropagationRule {
-    pub source_systems: Vec<SystemComponent>,
-    pub target_systems: Vec<SystemComponent>,
-    pub propagation_delay: f32,
-    pub amplitude_scaling: f32,
-    pub interference_factors: HashMap<SystemComponent, f32>,
-    pub condition_requirements: Vec<PropagationCondition>,
-}
-
-#[derive(Debug)]
-pub struct PropagationCondition {
-    pub system: SystemComponent,
-    pub property: String,
-    pub threshold: f32,
-    pub comparison: ComparisonType,
-}
-
-#[derive(Debug)]
-pub enum ComparisonType {
-    GreaterThan,
-    LessThan,
-    EqualTo,
-    WithinRange(f32, f32),
-}
-
-#[derive(Debug)]
-pub struct EventFiltering {
-    pub safety_filters: Vec<SafetyFilter>,
-    pub performance_filters: Vec<PerformanceFilter>,
-    pub coherence_filters: Vec<CoherenceFilter>,
-}
-
-#[derive(Debug)]
-pub struct SafetyFilter {
-    pub filter_type: SafetyFilterType,
-    pub threshold: f32,
-    pub action: SafetyAction,
-}
-
-#[derive(Debug)]
-pub enum SafetyFilterType {
-    FlashRateLimit,
-    LuminanceChange,
-    IntensitySpike,
-    RapidStateChange,
-}
-
-#[derive(Debug)]
-pub enum SafetyAction {
-    Attenuate(f32),
-    Delay(f32),
-    Block,
-    Redistribute,
-}
-
-#[derive(Debug)]
-pub struct PerformanceFilter {
-    pub max_simultaneous_events: usize,
-    pub priority_threshold: f32,
-    pub resource_limits: HashMap<String, f32>,
-}
-
-#[derive(Debug)]
-pub struct CoherenceFilter {
-    pub coherence_threshold: f32,
-    pub interference_management: InterferenceManagement,
-    pub pattern_preservation: PatternPreservation,
-}
-
-#[derive(Debug)]
-pub struct InterferenceManagement {
-    pub destructive_interference_threshold: f32,
-    pub constructive_amplification_limit: f32,
-    pub phase_alignment_tolerance: f32,
-}
-
-#[derive(Debug)]
-pub struct PatternPreservation {
-    pub maintain_rhythmic_integrity: bool,
-    pub preserve_consciousness_patterns: bool,
-    pub maintain_communication_coherence: bool,
-}
-
-#[derive(Debug)]
-pub struct CascadeEngine {
-    pub cascade_rules: HashMap<EventType, CascadeRule>,
-    pub active_cascades: Vec<ActiveCascade>,
-    pub cascade_intensity_matrix: Vec<Vec<f32>>,
-    pub feedback_loops: Vec<FeedbackLoop>,
-    pub resonance_amplifiers: Vec<ResonanceAmplifier>,
-}
-
-#[derive(Debug)]
-pub struct CascadeRule {
-    pub trigger_event: EventType,
-    pub cascade_targets: Vec<CascadeTarget>,
-    pub cascade_delay: f32,
-    pub amplification_factor: f32,
-    pub decay_rate: f32,
-    pub maximum_iterations: u32,
-}
-
-#[derive(Debug)]
-pub struct CascadeTarget {
-    pub target_system: SystemComponent,
-    pub effect_type: CascadeEffectType,
-    pub magnitude_multiplier: f32,
-    pub propagation_probability: f32,
-}
-
-#[derive(Debug)]
-pub enum CascadeEffectType {
-    Amplification,
-    Resonance,
-    StateChange,
-    ParameterModification,
-    EmergentBehavior,
-}
-
-#[derive(Debug)]
-pub struct ActiveCascade {
-    pub cascade_id: String,
-    pub source_event: String,
-    pub current_iteration: u32,
-    pub affected_systems: HashMap<SystemComponent, f32>,
-    pub cascade_strength: f32,
-    pub propagation_front: Vec<PropagationFront>,
-}
-
-#[derive(Debug)]
-pub struct PropagationFront {
-    pub system: SystemComponent,
-    pub arrival_time: f64,
-    pub effect_magnitude: f32,
-    pub propagation_vector: Vec2,
-}
-
-#[derive(Debug)]
-pub struct FeedbackLoop {
-    pub loop_id: String,
-    pub participating_systems: Vec<SystemComponent>,
-    pub feedback_strength: f32,
-    pub loop_stability: f32,
-    pub resonance_frequency: f32,
-    pub amplification_threshold: f32,
-}
-
-#[derive(Debug)]
-pub struct ResonanceAmplifier {
-    pub amplifier_id: String,
-    pub target_frequency: f32,
-    pub amplification_factor: f32,
-    pub bandwidth: f32,
-    pub current_resonance: f32,
-}
-
-#[derive(Debug)]
-pub struct SynchronizationMatrix {
-    pub system_synchronization: HashMap<SystemComponent, HashMap<SystemComponent, SyncRelationship>>,
-    pub global_synchronization_state: f32,
-    pub rhythm_coherence: f32,
-    pub phase_alignments: HashMap<SystemComponent, f32>,
-    pub synchronization_strength: f32,
-}
-
-#[derive(Debug)]
-pub struct SyncRelationship {
-    pub relationship_type: SyncRelationshipType,
-    pub synchronization_strength: f32,
-    pub phase_difference: f32,
-    pub coherence_level: f32,
-    pub stability: f32,
-}
-
-#[derive(Debug)]
-pub enum SyncRelationshipType {
-    InPhase,
-    AntiPhase,
-    QuadraturePhase,
-    Harmonic(f32),
-    Independent,
-    Coupled(f32),
-}
-
-#[derive(Debug)]
-pub struct EventHistory {
-    pub recent_events: VecDeque<HistoricalEvent>,
-    pub pattern_recognition: PatternRecognition,
-    pub emergence_tracking: EmergenceTracking,
-    pub performance_metrics: PerformanceMetrics,
-}
-
-#[derive(Debug, Clone)]
-pub struct HistoricalEvent {
-    pub event: SystemEvent,
-    pub actual_effects: HashMap<SystemComponent, f32>,
-    pub cascade_outcomes: Vec<String>,
-    pub performance_impact: f32,
-    pub user_response: Option<f32>,
-}
-
-#[derive(Debug)]
-pub struct PatternRecognition {
-    pub recurring_patterns: HashMap<String, PatternSignature>,
-    pub pattern_prediction_accuracy: f32,
-    pub learned_correlations: HashMap<String, f32>,
-}
-
-#[derive(Debug)]
-pub struct PatternSignature {
-    pub pattern_id: String,
-    pub event_sequence: Vec<EventType>,
-    pub temporal_pattern: Vec<f32>,
-    pub system_involvement: HashMap<SystemComponent, f32>,
-    pub confidence: f32,
-    pub frequency: f32,
-}
-
-#[derive(Debug)]
-pub struct EmergenceTracking {
-    pub emergence_indicators: HashMap<String, f32>,
-    pub threshold_monitoring: HashMap<String, ThresholdMonitor>,
-    pub emergence_prediction: EmergencePrediction,
-}
-
-#[derive(Debug)]
-pub struct ThresholdMonitor {
-    pub current_value: f32,
-    pub threshold: f32,
-    pub trend: f32,
-    pub time_to_threshold: Option<f32>,
-}
-
-#[derive(Debug)]
-pub struct EmergencePrediction {
-    pub predicted_events: Vec<PredictedEvent>,
-    pub confidence_levels: HashMap<EventType, f32>,
-    pub temporal_predictions: HashMap<EventType, f32>,
-}
-
-#[derive(Debug)]
-pub struct PredictedEvent {
-    pub event_type: EventType,
-    pub predicted_time: f64,
-    pub confidence: f32,
-    pub expected_magnitude: f32,
-}
-
-#[derive(Debug)]
-pub struct PerformanceMetrics {
-    pub event_processing_time: VecDeque<f64>,
-    pub cascade_efficiency: f32,
-    pub synchronization_quality: f32,
-    pub system_responsiveness: HashMap<SystemComponent, f32>,
-}
-
-#[derive(Debug)]
-pub struct SystemResonance {
-    pub global_resonance_state: f32,
-    pub harmonic_frequencies: Vec<f32>,
-    pub resonance_nodes: Vec<ResonanceNode>,
-    pub interference_patterns: Vec<SystemInterferencePattern>,
-    pub coherence_field: CoherenceField,
-}
-
-#[derive(Debug)]
-pub struct ResonanceNode {
-    pub node_id: String,
-    pub frequency: f32,
-    pub amplitude: f32,
-    pub phase: f32,
-    pub participating_systems: Vec<SystemComponent>,
-    pub resonance_quality: f32,
-}
-
-#[derive(Debug)]
-pub struct SystemInterferencePattern {
-    pub pattern_id: String,
-    pub interfering_systems: Vec<SystemComponent>,
-    pub interference_type: SystemInterferenceType,
-    pub magnitude: f32,
-    pub spatial_distribution: HashMap<String, f32>,
-}
-
-#[derive(Debug)]
-pub enum SystemInterferenceType {
-    Constructive,
-    Destructive,
-    Modulative,
-    Chaotic,
-}
-
-#[derive(Debug)]
-pub struct CoherenceField {
-    pub field_strength: f32,
-    pub coherence_gradient: HashMap<String, f32>,
-    pub stability_regions: Vec<StabilityRegion>,
-    pub turbulence_zones: Vec<TurbulenceZone>,
-}
-
-#[derive(Debug)]
-pub struct StabilityRegion {
-    pub region_id: String,
-    pub stability_level: f32,
-    pub contributing_factors: HashMap<String, f32>,
-    pub maintenance_requirements: Vec<String>,
-}
-
-#[derive(Debug)]
-pub struct TurbulenceZone {
-    pub zone_id: String,
-    pub turbulence_intensity: f32,
-    pub chaos_contribution: f32,
-    pub emergence_potential: f32,
-}
 
 pub struct ChaosEngine {
     device: Device,
@@ -1754,9 +1255,9 @@ impl ChaosEngine {
                 let angle2 = ((i + 1) as f32 / 8.0) * std::f32::consts::TAU;
 
                 vertices.extend([
-                    Vertex { position: [x, y, 0.0], color: zone_color_array, uv: [0.5, 0.5] },
-                    Vertex { position: [x + angle1.cos() * r, y + angle1.sin() * r, 0.0], color: zone_color_array, uv: [0.5, 0.5] },
-                    Vertex { position: [x + angle2.cos() * r, y + angle2.sin() * r, 0.0], color: zone_color_array, uv: [0.5, 0.5] },
+                    Vertex { position: [x, y, 0.0], color: zone_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.3, trip_intensity: 0.1 },
+                    Vertex { position: [x + angle1.cos() * r, y + angle1.sin() * r, 0.0], color: zone_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.3, trip_intensity: 0.1 },
+                    Vertex { position: [x + angle2.cos() * r, y + angle2.sin() * r, 0.0], color: zone_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.3, trip_intensity: 0.1 },
                 ]);
             }
         }
@@ -1800,9 +1301,9 @@ impl ChaosEngine {
                             let angle2 = ((i + 1) as f32 / circle_segments as f32) * std::f32::consts::TAU;
 
                             vertices.extend([
-                                Vertex { position: [x, y, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
-                                Vertex { position: [x + angle1.cos() * s, y + angle1.sin() * s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
-                                Vertex { position: [x + angle2.cos() * s, y + angle2.sin() * s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
+                                Vertex { position: [x, y, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 1.0, consciousness: 0.5, trip_intensity: 0.3 },
+                                Vertex { position: [x + angle1.cos() * s, y + angle1.sin() * s, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 1.0, consciousness: 0.5, trip_intensity: 0.3 },
+                                Vertex { position: [x + angle2.cos() * s, y + angle2.sin() * s, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 1.0, consciousness: 0.5, trip_intensity: 0.3 },
                             ]);
                         }
 
@@ -1817,9 +1318,9 @@ impl ChaosEngine {
                             let angle2 = ((i + 1) as f32 / circle_segments as f32) * std::f32::consts::TAU;
 
                             vertices.extend([
-                                Vertex { position: [x + angle1.cos() * s, y + angle1.sin() * s, 0.0], color: ring_color, uv: [0.5, 0.5] },
-                                Vertex { position: [x + angle1.cos() * outer_s, y + angle1.sin() * outer_s, 0.0], color: ring_color, uv: [0.5, 0.5] },
-                                Vertex { position: [x + angle2.cos() * outer_s, y + angle2.sin() * outer_s, 0.0], color: ring_color, uv: [0.5, 0.5] },
+                                Vertex { position: [x + angle1.cos() * s, y + angle1.sin() * s, 0.0], color: ring_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                                Vertex { position: [x + angle1.cos() * outer_s, y + angle1.sin() * outer_s, 0.0], color: ring_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                                Vertex { position: [x + angle2.cos() * outer_s, y + angle2.sin() * outer_s, 0.0], color: ring_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
                             ]);
                         }
                     }
@@ -1844,12 +1345,12 @@ impl ChaosEngine {
                                     let perpy = dx / length * line_width;
 
                                     vertices.extend([
-                                        Vertex { position: [x1 + perpx, y1 + perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
-                                        Vertex { position: [x1 - perpx, y1 - perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
-                                        Vertex { position: [x2 + perpx, y2 + perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
-                                        Vertex { position: [x1 - perpx, y1 - perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
-                                        Vertex { position: [x2 - perpx, y2 - perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
-                                        Vertex { position: [x2 + perpx, y2 + perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5] },
+                                        Vertex { position: [x1 + perpx, y1 + perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                                        Vertex { position: [x1 - perpx, y1 - perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                                        Vertex { position: [x2 + perpx, y2 + perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                                        Vertex { position: [x1 - perpx, y1 - perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                                        Vertex { position: [x2 - perpx, y2 - perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                                        Vertex { position: [x2 + perpx, y2 + perpy, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
                                     ]);
                                 }
                             }
@@ -1858,15 +1359,15 @@ impl ChaosEngine {
                     _ => {
                         // Default: simple diamond shape for other types
                         vertices.extend([
-                            Vertex { position: [x, y + s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Top
-                            Vertex { position: [x - s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Left
-                            Vertex { position: [x + s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Right
-                            Vertex { position: [x, y + s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Top
-                            Vertex { position: [x + s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Right
-                            Vertex { position: [x, y - s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Bottom
-                            Vertex { position: [x, y - s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Bottom
-                            Vertex { position: [x - s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Left
-                            Vertex { position: [x, y + s, 0.0], color: comm_color_array, uv: [0.5, 0.5] },     // Top
+                            Vertex { position: [x, y + s, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },     // Top
+                            Vertex { position: [x - s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },     // Left
+                            Vertex { position: [x + s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },     // Right
+                            Vertex { position: [x, y + s, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },     // Top
+                            Vertex { position: [x + s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },     // Right
+                            Vertex { position: [x, y - s, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },     // Bottom
+                            Vertex { position: [x, y - s, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },     // Bottom
+                            Vertex { position: [x - s, y, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },     // Left
+                            Vertex { position: [x, y + s, 0.0], color: comm_color_array, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },     // Top
                         ]);
                     }
                 }
@@ -1919,12 +1420,12 @@ impl ChaosEngine {
                         let norm_y = dx / length * line_width;
 
                         vertices.extend([
-                            Vertex { position: [x1 - norm_x, y1 - norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
-                            Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
-                            Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
-                            Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
-                            Vertex { position: [x2 + norm_x, y2 + norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
-                            Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5] },
+                            Vertex { position: [x1 - norm_x, y1 - norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                            Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                            Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                            Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                            Vertex { position: [x2 + norm_x, y2 + norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                            Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: final_connection_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
                         ]);
                     }
                 }
@@ -1943,12 +1444,12 @@ impl ChaosEngine {
             ];
 
             vertices.extend([
-                Vertex { position: [center_x - center_size, center_y - center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
-                Vertex { position: [center_x + center_size, center_y - center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
-                Vertex { position: [center_x - center_size, center_y + center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
-                Vertex { position: [center_x + center_size, center_y - center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
-                Vertex { position: [center_x + center_size, center_y + center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
-                Vertex { position: [center_x - center_size, center_y + center_size, 0.0], color: center_color, uv: [0.5, 0.5] },
+                Vertex { position: [center_x - center_size, center_y - center_size, 0.0], color: center_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                Vertex { position: [center_x + center_size, center_y - center_size, 0.0], color: center_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                Vertex { position: [center_x - center_size, center_y + center_size, 0.0], color: center_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                Vertex { position: [center_x + center_size, center_y - center_size, 0.0], color: center_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                Vertex { position: [center_x + center_size, center_y + center_size, 0.0], color: center_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                Vertex { position: [center_x - center_size, center_y + center_size, 0.0], color: center_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
             ]);
         }
 
@@ -1982,12 +1483,12 @@ impl ChaosEngine {
                     let norm_y = dx / length * beam_width;
 
                     vertices.extend([
-                        Vertex { position: [x1 - norm_x, y1 - norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
-                        Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
-                        Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
-                        Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
-                        Vertex { position: [x2 + norm_x, y2 + norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
-                        Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: beam_color, uv: [0.5, 0.5] },
+                        Vertex { position: [x1 - norm_x, y1 - norm_y, 0.0], color: beam_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                        Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: beam_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                        Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: beam_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                        Vertex { position: [x1 + norm_x, y1 + norm_y, 0.0], color: beam_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                        Vertex { position: [x2 + norm_x, y2 + norm_y, 0.0], color: beam_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                        Vertex { position: [x2 - norm_x, y2 - norm_y, 0.0], color: beam_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
                     ]);
                 }
             }
@@ -2016,9 +1517,9 @@ impl ChaosEngine {
                 let angle2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
 
                 vertices.extend([
-                    Vertex { position: [conflict_x, conflict_y, 0.0], color: war_color, uv: [0.5, 0.5] },
-                    Vertex { position: [conflict_x + angle1.cos() * conflict_radius, conflict_y + angle1.sin() * conflict_radius, 0.0], color: war_color, uv: [0.5, 0.5] },
-                    Vertex { position: [conflict_x + angle2.cos() * conflict_radius, conflict_y + angle2.sin() * conflict_radius, 0.0], color: war_color, uv: [0.5, 0.5] },
+                    Vertex { position: [conflict_x, conflict_y, 0.0], color: war_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                    Vertex { position: [conflict_x + angle1.cos() * conflict_radius, conflict_y + angle1.sin() * conflict_radius, 0.0], color: war_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                    Vertex { position: [conflict_x + angle2.cos() * conflict_radius, conflict_y + angle2.sin() * conflict_radius, 0.0], color: war_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
                 ]);
             }
         }
@@ -2045,9 +1546,9 @@ impl ChaosEngine {
             let angle2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU + rotation;
 
             vertices.extend([
-                Vertex { position: [obs_x, obs_y, 0.0], color: eye_color, uv: [0.5, 0.5] },
-                Vertex { position: [obs_x + angle1.cos() * obs_size, obs_y + angle1.sin() * obs_size, 0.0], color: eye_color, uv: [0.5, 0.5] },
-                Vertex { position: [obs_x + angle2.cos() * obs_size, obs_y + angle2.sin() * obs_size, 0.0], color: eye_color, uv: [0.5, 0.5] },
+                Vertex { position: [obs_x, obs_y, 0.0], color: eye_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                Vertex { position: [obs_x + angle1.cos() * obs_size, obs_y + angle1.sin() * obs_size, 0.0], color: eye_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                Vertex { position: [obs_x + angle2.cos() * obs_size, obs_y + angle2.sin() * obs_size, 0.0], color: eye_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
             ]);
         }
 
@@ -2066,9 +1567,9 @@ impl ChaosEngine {
                 let next_angle = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
 
                 vertices.extend([
-                    Vertex { position: [obs_x + angle.cos() * awareness_radius * 0.9, obs_y + angle.sin() * awareness_radius * 0.9, 0.0], color: awareness_color, uv: [0.5, 0.5] },
-                    Vertex { position: [obs_x + angle.cos() * awareness_radius, obs_y + angle.sin() * awareness_radius, 0.0], color: awareness_color, uv: [0.5, 0.5] },
-                    Vertex { position: [obs_x + next_angle.cos() * awareness_radius, obs_y + next_angle.sin() * awareness_radius, 0.0], color: awareness_color, uv: [0.5, 0.5] },
+                    Vertex { position: [obs_x + angle.cos() * awareness_radius * 0.9, obs_y + angle.sin() * awareness_radius * 0.9, 0.0], color: awareness_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                    Vertex { position: [obs_x + angle.cos() * awareness_radius, obs_y + angle.sin() * awareness_radius, 0.0], color: awareness_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                    Vertex { position: [obs_x + next_angle.cos() * awareness_radius, obs_y + next_angle.sin() * awareness_radius, 0.0], color: awareness_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
                 ]);
             }
         }
@@ -2107,9 +1608,9 @@ impl ChaosEngine {
                         let angle2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
 
                         vertices.extend([
-                            Vertex { position: [x + angle1.cos() * aura_size * 0.8, y + angle1.sin() * aura_size * 0.8, 0.0], color: final_aura_color, uv: [0.5, 0.5] },
-                            Vertex { position: [x + angle1.cos() * aura_size, y + angle1.sin() * aura_size, 0.0], color: final_aura_color, uv: [0.5, 0.5] },
-                            Vertex { position: [x + angle2.cos() * aura_size, y + angle2.sin() * aura_size, 0.0], color: final_aura_color, uv: [0.5, 0.5] },
+                            Vertex { position: [x + angle1.cos() * aura_size * 0.8, y + angle1.sin() * aura_size * 0.8, 0.0], color: final_aura_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                            Vertex { position: [x + angle1.cos() * aura_size, y + angle1.sin() * aura_size, 0.0], color: final_aura_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
+                            Vertex { position: [x + angle2.cos() * aura_size, y + angle2.sin() * aura_size, 0.0], color: final_aura_color, uv: [0.5, 0.5], species_id: 0.0, consciousness: 0.4, trip_intensity: 0.2 },
                         ]);
                     }
                 }

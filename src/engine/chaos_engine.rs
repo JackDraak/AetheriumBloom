@@ -1,5 +1,6 @@
 use glam::Vec2;
 use fastrand;
+use crate::entities::Llama;
 
 // Phase 2: Mathematical Chaos Engine Components
 
@@ -296,7 +297,7 @@ impl ConsciousnessMultiplicationSystem {
         }
     }
 
-    pub fn update(&mut self, dt: f32, llamas: &mut [crate::simple::Llama], cosmic_time: f32) {
+    pub fn update(&mut self, dt: f32, llamas: &mut [Llama], cosmic_time: f32) {
         // Update meta observer consciousness analysis
         self.update_consciousness_analysis(llamas);
 
@@ -322,7 +323,7 @@ impl ConsciousnessMultiplicationSystem {
         self.update_warfare_state(llamas);
     }
 
-    fn update_consciousness_analysis(&mut self, llamas: &[crate::simple::Llama]) {
+    fn update_consciousness_analysis(&mut self, llamas: &[Llama]) {
         let mut analysis = &mut self.meta_observer.consciousness_analysis;
 
         // Count consciousness levels
@@ -400,7 +401,7 @@ impl ConsciousnessMultiplicationSystem {
             .clamp(0.0, 1.0);
     }
 
-    fn process_consciousness_hierarchies(&mut self, llamas: &mut [crate::simple::Llama], _dt: f32) {
+    fn process_consciousness_hierarchies(&mut self, llamas: &mut [Llama], _dt: f32) {
         // Clear existing hierarchies to rebuild them
         self.hierarchy_levels.clear();
 
@@ -477,7 +478,7 @@ impl ConsciousnessMultiplicationSystem {
         }
     }
 
-    fn process_hive_mind_emergence(&mut self, llamas: &mut [crate::simple::Llama], dt: f32, cosmic_time: f32) {
+    fn process_hive_mind_emergence(&mut self, llamas: &mut [Llama], dt: f32, cosmic_time: f32) {
         // Check for new hive mind formation
         for hierarchy in &self.hierarchy_levels {
             if hierarchy.level == ConsciousnessLevel::Hive {
@@ -590,7 +591,7 @@ impl ConsciousnessMultiplicationSystem {
         });
     }
 
-    fn process_consciousness_predation(&mut self, llamas: &mut [crate::simple::Llama], dt: f32) {
+    fn process_consciousness_predation(&mut self, llamas: &mut [Llama], dt: f32) {
         // Check for new predation events
         for i in 0..llamas.len() {
             let predator = &llamas[i];
@@ -666,7 +667,7 @@ impl ConsciousnessMultiplicationSystem {
         });
     }
 
-    fn process_species_warfare(&mut self, llamas: &mut [crate::simple::Llama], dt: f32, cosmic_time: f32) {
+    fn process_species_warfare(&mut self, llamas: &mut [Llama], dt: f32, cosmic_time: f32) {
         // Check for new territorial conflicts
         for i in 0..llamas.len() {
             for j in (i + 1)..llamas.len() {
@@ -797,7 +798,7 @@ impl ConsciousnessMultiplicationSystem {
         }
     }
 
-    fn process_evolution_pressure(&mut self, llamas: &mut [crate::simple::Llama], dt: f32) {
+    fn process_evolution_pressure(&mut self, llamas: &mut [Llama], dt: f32) {
         self.evolution_pressure_accumulator += dt;
 
         // Apply evolution pressure every 5 seconds
@@ -868,7 +869,7 @@ impl ConsciousnessMultiplicationSystem {
         }
     }
 
-    fn process_meta_observer_interventions(&mut self, llamas: &mut [crate::simple::Llama], dt: f32, cosmic_time: f32) {
+    fn process_meta_observer_interventions(&mut self, llamas: &mut [Llama], dt: f32, cosmic_time: f32) {
         let observer = &mut self.meta_observer;
         observer.last_intervention += dt;
 
@@ -935,7 +936,7 @@ impl ConsciousnessMultiplicationSystem {
                         let target_per_species = total_consciousness / 3.0;
 
                         for species_type in [SpeciesType::DiscoLlama, SpeciesType::QuantumSheep, SpeciesType::HypnoCamel] {
-                            let species_llamas: Vec<&mut crate::simple::Llama> = llamas.iter_mut()
+                            let species_llamas: Vec<&mut Llama> = llamas.iter_mut()
                                 .filter(|l| l.species == species_type && l.consciousness > 0.1)
                                 .collect();
 
@@ -965,7 +966,7 @@ impl ConsciousnessMultiplicationSystem {
         observer.observer_position.y = observer.observer_position.y.clamp(100.0, 700.0);
     }
 
-    fn update_warfare_state(&mut self, llamas: &[crate::simple::Llama]) {
+    fn update_warfare_state(&mut self, llamas: &[Llama]) {
         // Update species populations
         let mut populations = [0u32; 3];
         for llama in llamas {

@@ -4,6 +4,22 @@
 use glam::Vec2;
 use std::collections::{HashMap, VecDeque};
 
+/// Visual environment state for user action context
+#[derive(Debug, Clone)]
+pub struct VisualEnvironmentState {
+    pub brightness_level: f32,
+    pub flash_rate: f32,
+    pub consciousness_visibility: f32,
+}
+
+/// Audio environment state for user action context
+#[derive(Debug, Clone)]
+pub struct AudioEnvironmentState {
+    pub beat_intensity: f32,
+    pub frequency_distribution: HashMap<String, f32>,
+    pub rhythm_coherence: f32,
+}
+
 /// Comprehensive user co-evolution system that adapts the digital ecosystem to user preferences
 #[derive(Debug)]
 pub struct UserCoEvolutionSystem {

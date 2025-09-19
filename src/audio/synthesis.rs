@@ -259,7 +259,7 @@ impl PsychedelicSynthesizer {
     fn apply_mathematical_modulation(&mut self, base_freq: f32, sample_time: f64, beat_state: &BeatState) -> f32 {
         // Prime number modulation
         self.prime_harmonic_index = ((sample_time * 0.1) as usize) % 1000;
-        let prime = self.prime_sieve.nth(self.prime_harmonic_index);
+        let prime = self.prime_sieve.iter().nth(self.prime_harmonic_index).unwrap_or(2);
         let prime_factor = (prime % 12) as f32 / 12.0;
 
         // Golden ratio modulation
@@ -356,7 +356,7 @@ impl PsychedelicSynthesizer {
             // Frequency modulation chaos
             let fm_freq = beat_state.cosmic_frequency * 0.1;
             let fm_amount = self.chaos_intensity * config.chaos_factor;
-            let fm_modulation = (self.master_phase * fm_freq * std::f64::consts::TAU).sin() as f32;
+            let fm_modulation = (self.master_phase * fm_freq as f64 * std::f64::consts::TAU).sin() as f32;
             chaotic *= 1.0 + fm_modulation * fm_amount * 0.3;
         }
 
@@ -372,7 +372,7 @@ impl PsychedelicSynthesizer {
         if self.chaos_intensity > 0.8 {
             // Ring modulation for extreme chaos
             let ring_freq = beat_state.cosmic_frequency * 2.0;
-            let ring_modulator = (self.master_phase * ring_freq * std::f64::consts::TAU).sin() as f32;
+            let ring_modulator = (self.master_phase * ring_freq as f64 * std::f64::consts::TAU).sin() as f32;
             chaotic *= ring_modulator.abs();
         }
 
@@ -614,7 +614,7 @@ impl OscillatorBank {
                 ((cycle_phase / std::f64::consts::PI) - 1.0) as f32
             },
             AudioWaveform::Square => {
-                if (phase % std::f64::consts::TAU) < std::f64::consts::PI { 1.0 } else { -1.0 }
+                (if (phase % std::f64::consts::TAU) < std::f64::consts::PI { 1.0 } else { -1.0 }) as f32
             },
             AudioWaveform::Triangle => {
                 let cycle_phase = (phase % std::f64::consts::TAU) / std::f64::consts::TAU;
