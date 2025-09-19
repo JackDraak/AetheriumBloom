@@ -11,6 +11,6 @@ pub mod input;
 pub mod mathematics;
 pub mod reality;
 pub mod rendering;
-pub mod simple;
+// pub mod simple; // Moved to binary main.rs
 pub mod simulation;
 pub mod user;

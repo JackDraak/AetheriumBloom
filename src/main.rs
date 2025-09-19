@@ -1,4 +1,5 @@
 use anyhow::Result;
+use aetherium_bloom;
 
 mod simple;
 

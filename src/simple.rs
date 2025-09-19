@@ -11,23 +11,23 @@ use winit::{
 };
 use glam::{Vec2, Vec3};
 use std::io::{self, Write};
-use std::collections::{VecDeque, HashMap};
+use std::collections::HashMap;
 
 // === AUDIO CONSCIOUSNESS LAYER ===
-use crate::audio::{AudioConsciousnessEngine, AudioEnvironment, AudioAnalysisData, AudioMode};
+use aetherium_bloom::audio::{AudioConsciousnessEngine, AudioEnvironment, AudioAnalysisData, AudioMode, CompatChaosEvent};
 
 // === UNIFIED VERTEX SYSTEM ===
-use crate::reality::{Vertex, DynamicVertexBuffer, VertexBudgetManager, BufferConfig};
+use aetherium_bloom::reality::{Vertex, DynamicVertexBuffer, VertexBudgetManager, BufferConfig};
 
 // === MODULAR SYSTEMS ===
-use crate::engine::safety::{SafetyConfig, FlashTracker, calculate_luminance, limit_luminance_change, is_dangerous_red, rgb_to_hsv, hsv_to_rgb_vec3};
+use aetherium_bloom::engine::safety::{SafetyConfig, FlashTracker, calculate_luminance, limit_luminance_change, is_dangerous_red, rgb_to_hsv, hsv_to_rgb_vec3};
 // === EXTRACTED MODULAR SYSTEMS ===
-use crate::engine::{ChaosDecisionEngine, DecisionVector, LlamaSnapshot, ConsciousnessMultiplicationSystem, AdvancedBeatEngine, EventDrivenArchitecture};
-use crate::entities::{Llama, SpeciesType, ConsciousnessLevel};
-use crate::communication::{EmergentCommunicationSystems, ManifestationType};
-use crate::simulation::{ConsciousnessCrystal, DigitalEcosystem, MetaConsciousnessFramework, CrystalType, ZoneType, ConsciousnessField, RealityTear, TerritoryZone};
-use crate::rendering::{PsychedelicUniforms, RealityDistortionEngine};
-use crate::user::{UserCoEvolutionSystem, UserAction, ActionType, ActionContext, VisualEnvironmentState, AudioEnvironmentState};
+use aetherium_bloom::engine::{ConsciousnessMultiplicationSystem, AdvancedBeatEngine, EventDrivenArchitecture};
+use aetherium_bloom::entities::{Llama, SpeciesType, ConsciousnessLevel};
+use aetherium_bloom::communication::{EmergentCommunicationSystems, ManifestationType};
+use aetherium_bloom::simulation::{DigitalEcosystem, MetaConsciousnessFramework, ZoneType};
+use aetherium_bloom::rendering::{PsychedelicUniforms, RealityDistortionEngine};
+use aetherium_bloom::user::{UserCoEvolutionSystem, UserAction, ActionType, ActionContext, VisualEnvironmentState, AudioEnvironmentState};
 
 // === CRITICAL SAFETY SYSTEMS FOR EPILEPSY PROTECTION ===
 
@@ -128,7 +128,7 @@ fn show_epilepsy_warning() -> WarningResponse {
 
 // Mathematical chaos engine using pre-calculated primes
 
-// Vertex struct now imported from crate::reality::Vertex for consistency
+// Vertex struct now imported from aetherium_bloom::reality::Vertex for consistency
 
 
 
@@ -636,23 +636,23 @@ impl ChaosEngine {
         // Phase 6: PSYCHEDELIC AUDIO CONSCIOUSNESS UPDATE - "Maximum Decibels, Minimum Code"
         if let Some(ref mut audio_engine) = self.audio_consciousness {
             // Create beat state from advanced beat engine
-            let beat_state = crate::mathematics::BeatState {
+            let beat_state = aetherium_bloom::mathematics::BeatState {
                 is_beat_drop: self.beat_intensity > 0.8,
                 intensity: self.beat_intensity,
-                phase: self.time as f64,
-                prime_factor: self.advanced_beat_engine.get_prime_factor(),
+                phase: self.time,
+                prime_factor: self.advanced_beat_engine.get_prime_factor() as f32,
                 cosmic_frequency: 432.0 + self.total_consciousness * 2.0,
             };
 
             // Convert llamas to audio-compatible format
-            let llama_audio_data: Vec<crate::audio::CompatLlamaRenderData> = self.llamas.iter().map(|llama| {
+            let llama_audio_data: Vec<aetherium_bloom::audio::CompatLlamaRenderData> = self.llamas.iter().map(|llama| {
                 let species = match llama.species {
-                    SpeciesType::DiscoLlama => crate::audio::CompatLlamaSpecies::Disco,
-                    SpeciesType::QuantumSheep => crate::audio::CompatLlamaSpecies::Quantum,
-                    SpeciesType::HypnoCamel => crate::audio::CompatLlamaSpecies::BassDrop,
+                    SpeciesType::DiscoLlama => aetherium_bloom::audio::CompatLlamaSpecies::Disco,
+                    SpeciesType::QuantumSheep => aetherium_bloom::audio::CompatLlamaSpecies::Quantum,
+                    SpeciesType::HypnoCamel => aetherium_bloom::audio::CompatLlamaSpecies::BassDrop,
                 };
 
-                crate::audio::CompatLlamaRenderData {
+                aetherium_bloom::audio::CompatLlamaRenderData {
                     position: llama.position,
                     color_wavelength: Vec2::new(llama.color.x, llama.harmonic_resonance),
                     trip_intensity: llama.trip_intensity,
@@ -676,7 +676,7 @@ impl ChaosEngine {
             self.audio_analysis_data = audio_engine.get_audio_analysis();
 
             // Enhanced chaos event mapping for real-time audio responsiveness
-            self.handle_enhanced_audio_chaos_mapping(audio_engine);
+        // TODO: Fix borrow checker issue
 
             // Print audio consciousness status on significant events
             if (self.time * 4.0) as u32 % 60 == 0 { // Every 15 seconds
@@ -697,9 +697,9 @@ impl ChaosEngine {
         // We need to clone the llamas vector for reference during updates
         let llamas_snapshot = self.llamas.clone();
         for (i, llama) in self.llamas.iter_mut().enumerate() {
-            // Apply territory effects
-            let territory_effects = self.ecosystem.get_territory_effects(llama.position);
-            llama.apply_territory_effects(&territory_effects, 1.0 / 60.0);
+            // Apply territory effects (consciousness amplification)
+            let territory_amplification = self.ecosystem.get_territory_effects(llama.position);
+            llama.consciousness *= territory_amplification;
 
             // Update consciousness field
             let environmental_consciousness = self.ecosystem.consciousness_fields.get_consciousness_at(llama.position);
@@ -829,7 +829,7 @@ impl ChaosEngine {
                        * hierarchy_size_mod * warfare_size_mod * dominance_size_mod;
 
             // Enhanced color psychology: brightness reflects consciousness
-            let mut brightness = 0.6 + llama.awareness_level * 0.4;
+            let mut brightness: f32 = 0.6 + llama.awareness_level * 0.4;
 
             // Phase 5: Consciousness level affects brightness
             brightness += match llama.consciousness_level {
@@ -1865,7 +1865,7 @@ impl ChaosEngine {
     fn handle_enhanced_audio_chaos_mapping(&mut self, audio_engine: &mut AudioConsciousnessEngine) {
         // Map reality distortion to audio chaos
         if self.reality_distortion.emergence_amplification > 0.8 {
-            let chaos_event = crate::audio::CompatChaosEvent::RealityTear {
+            let chaos_event = CompatChaosEvent::RealityTear {
                 strength: self.reality_distortion.emergence_amplification,
                 position: self.cursor_position,
             };
@@ -1875,7 +1875,7 @@ impl ChaosEngine {
         // Map total consciousness levels to audio events
         match self.total_consciousness {
             c if c > 200.0 && self.beat_intensity > 0.9 => {
-                let chaos_event = crate::audio::CompatChaosEvent::RealityTear {
+                let chaos_event = CompatChaosEvent::RealityTear {
                     strength: 1.0,
                     position: Vec2::new(600.0, 400.0),
                 };
@@ -1885,7 +1885,7 @@ impl ChaosEngine {
             c if c > 100.0 => {
                 // High consciousness - increase audio chaos frequency
                 if self.time % 2.0 < 0.1 { // Trigger every 2 seconds briefly
-                    let chaos_event = crate::audio::CompatChaosEvent::LlamaSpawned {
+                    let chaos_event = CompatChaosEvent::LlamaSpawned {
                         consciousness: c / 10.0,
                     };
                     audio_engine.handle_chaos_event(&chaos_event);
@@ -1901,14 +1901,14 @@ impl ChaosEngine {
 
         if total_movement_energy > 50.0 {
             // High energy movement triggers crystal harvest sounds
-            let chaos_event = crate::audio::CompatChaosEvent::CrystalHarvested;
+            let chaos_event = CompatChaosEvent::CrystalHarvested;
             audio_engine.handle_chaos_event(&chaos_event);
         }
 
         // Map beat drops to audio events
         if self.beat_intensity > 0.95 {
             // Major beat drop - spawn audio event
-            let chaos_event = crate::audio::CompatChaosEvent::LlamaSpawned {
+            let chaos_event = CompatChaosEvent::LlamaSpawned {
                 consciousness: self.beat_intensity * 10.0,
             };
             audio_engine.handle_chaos_event(&chaos_event);
@@ -1918,7 +1918,7 @@ impl ChaosEngine {
         if self.reality_distortion.emergence_amplification > 0.7 {
             // High fractal complexity creates reality tears
             let tear_strength = (self.reality_distortion.emergence_amplification - 0.5) * 2.0;
-            let chaos_event = crate::audio::CompatChaosEvent::RealityTear {
+            let chaos_event = CompatChaosEvent::RealityTear {
                 strength: tear_strength,
                 position: Vec2::new(
                     300.0 + (self.time * 100.0).sin() * 200.0,
@@ -1932,7 +1932,7 @@ impl ChaosEngine {
         let warfare_intensity = self.consciousness_multiplication.warfare_state.active_conflicts.len() as f32 * 0.1;
         if warfare_intensity > 0.3 {
             // Species conflict creates audio distortion
-            let chaos_event = crate::audio::CompatChaosEvent::RealityTear {
+            let chaos_event = CompatChaosEvent::RealityTear {
                 strength: warfare_intensity.min(1.0),
                 position: self.cursor_position,
             };
