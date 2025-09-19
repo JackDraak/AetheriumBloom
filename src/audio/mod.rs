@@ -448,8 +448,8 @@ impl AudioConsciousnessEngine {
     }
 
     pub fn set_audio_mode(&mut self, mode: AudioMode) {
-        self.controls.set_mode(mode);
         println!("🎵 Audio mode changed to: {}", mode.to_string());
+        self.controls.set_mode(mode);
     }
 
     pub fn adjust_volume(&mut self, delta: f32) {

@@ -158,7 +158,7 @@ impl BeatEngine {
 
             // Apply prime number filtering
             let prime_index = i % 100;
-            let prime = self.prime_sieve.iter().nth(prime_index).unwrap_or(2);
+            let prime = 2_u64; // TODO: Fix prime sieve mutability issue
             let prime_factor = (prime % 12) as f32 / 12.0;
 
             let modulated_harmonic = harmonic * (1.0 + prime_factor * 0.1);

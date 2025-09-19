@@ -3,7 +3,7 @@
 
 use glam::Vec2;
 use crate::entities::{SpeciesType, Llama};
-use crate::engine::{ChaosDecisionEngine, LlamaSnapshot, DecisionVector};
+use crate::engine::{LlamaSnapshot, DecisionVector};
 
 /// Comprehensive llama behavior system implementation
 impl Llama {

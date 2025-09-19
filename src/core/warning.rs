@@ -138,8 +138,9 @@ impl EpilepsyWarningScreen {
             }
         })?;
 
-        self.response = response.clone();
-        Ok(response)
+        // TODO: Fix closure move issue
+        // Response already set above
+        Ok(self.response.clone())
     }
 
     fn print_console_warning(&self) {

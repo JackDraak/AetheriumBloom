@@ -1,7 +1,6 @@
 // Meta-consciousness module - collective intelligence and transcendence systems
 // Extracted from simple.rs for better modularity
 
-use glam::Vec2;
 use std::collections::{VecDeque, HashMap};
 use crate::entities::Llama;
 use crate::simulation::consciousness_systems::DigitalEcosystem;

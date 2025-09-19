@@ -91,7 +91,7 @@ impl RealityField {
                 }
                 TearType::ChaosVortex => {
                     // Chaotic swirling motion
-                    tear.radius = 20.0 + (age * 3.0).sin() * 10.0;
+                    tear.radius = (20.0 + (age * 3.0).sin() * 10.0) as f32;
                     tear.strength = (((age * 7.0).cos().abs() * 0.3 + 0.7) *
                                   (1.0 - (age * 0.1).min(1.0))) as f32;
                 }

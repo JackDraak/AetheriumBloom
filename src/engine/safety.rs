@@ -2,7 +2,6 @@
 // Extracted from simple.rs for better modularity
 
 use glam::Vec3;
-use crate::simple::WarningResponse;
 
 /// Simple safety configuration
 #[derive(Debug, Clone)]

@@ -3,7 +3,6 @@
 // Transforms mathematical consciousness into raw audio chaos
 
 use std::collections::HashMap;
-use glam::Vec2;
 use primes::{PrimeSet, Sieve};
 
 use super::CompatLlamaSpecies;
@@ -406,7 +405,7 @@ impl PsychedelicSynthesizer {
         if self.edm_mode_active {
             // Add aggressive sidechain compression simulation
             let sidechain_freq = 4.0; // 4/4 beat
-            let sidechain_env = (1.0 - ((self.master_phase * sidechain_freq * std::f64::consts::TAU).sin() as f32).abs());
+            let sidechain_env = 1.0 - ((self.master_phase * sidechain_freq * std::f64::consts::TAU).sin() as f32).abs();
             result *= 0.3 + sidechain_env * 0.7;
 
             // Add EDM-style supersaw
@@ -448,7 +447,7 @@ impl PsychedelicSynthesizer {
 
     fn generate_sawtooth_wave(&self, frequency: f32, phase: f64) -> f32 {
         let cycle_phase = (phase * frequency as f64) % 1.0;
-        (cycle_phase as f32 * 2.0 - 1.0)
+        cycle_phase as f32 * 2.0 - 1.0
     }
 
     fn update_audio_analysis(&mut self, sample: f32) {

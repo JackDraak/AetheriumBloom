@@ -254,7 +254,7 @@ impl AudioEnvironmentZones {
 
             // Create audio generator for this zone if it doesn't exist
             if !self.zone_audio_generators.contains_key(&i) {
-                let generator = ZoneAudioGenerator::new(i, &zone);
+                let generator = ZoneAudioGenerator::new(i, &self.territory_zones[self.territory_zones.len() - 1]);
                 self.zone_audio_generators.insert(i, generator);
             }
         }

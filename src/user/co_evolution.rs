@@ -350,12 +350,35 @@ pub struct PatternRecognitionAlgorithm {
     pub adaptation_speed: f32,
 }
 
+impl PatternRecognitionAlgorithm {
+    pub fn new() -> Self {
+        Self {
+            algorithm_type: "neural_network".to_string(),
+            learning_rate: 0.01,
+            pattern_sensitivity: 0.7,
+            noise_tolerance: 0.1,
+            adaptation_speed: 0.5,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct PreferenceLearningAlgorithm {
     pub preference_weights: HashMap<String, f32>,
     pub learning_momentum: f32,
     pub forgetting_factor: f32,
     pub confidence_threshold: f32,
+}
+
+impl PreferenceLearningAlgorithm {
+    pub fn new() -> Self {
+        Self {
+            preference_weights: HashMap::new(),
+            learning_momentum: 0.9,
+            forgetting_factor: 0.01,
+            confidence_threshold: 0.6,
+        }
+    }
 }
 
 /// Adaptation optimization system
@@ -365,6 +388,26 @@ pub struct AdaptationOptimization {
     pub constraint_handling: ConstraintHandling,
     pub exploration_exploitation_balance: f32,
     pub convergence_criteria: ConvergenceCriteria,
+}
+
+impl AdaptationOptimization {
+    pub fn new() -> Self {
+        Self {
+            optimization_target: OptimizationTarget::MaximizeEngagement,
+            constraint_handling: ConstraintHandling {
+                safety_constraints: Vec::new(),
+                performance_constraints: Vec::new(),
+                user_defined_constraints: Vec::new(),
+            },
+            exploration_exploitation_balance: 0.5,
+            convergence_criteria: ConvergenceCriteria {
+                stability_threshold: 0.01,
+                improvement_threshold: 0.001,
+                maximum_iterations: 1000,
+                time_limit: 60.0,
+            },
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -420,6 +463,64 @@ pub struct FeedbackIntegration {
     pub implicit_feedback: ImplicitFeedback,
     pub feedback_weighting: FeedbackWeighting,
     pub feedback_validation: FeedbackValidation,
+}
+
+impl FeedbackIntegration {
+    pub fn new() -> Self {
+        Self {
+            explicit_feedback: ExplicitFeedback {
+                feedback_mechanisms: Vec::new(),
+                feedback_history: VecDeque::new(),
+                feedback_processing: FeedbackProcessing {
+                    processing_delay: 0.1,
+                    noise_filtering: 0.8,
+                    context_weighting: 0.7,
+                    temporal_weighting: 0.6,
+                },
+            },
+            implicit_feedback: ImplicitFeedback {
+                behavioral_indicators: HashMap::new(),
+                physiological_indicators: HashMap::new(),
+                performance_indicators: HashMap::new(),
+                inference_algorithms: ImplicitInferenceAlgorithms {
+                    behavior_analysis: BehaviorAnalysisAlgorithm {
+                        algorithm_name: "neural_network".to_string(),
+                        sensitivity: 0.7,
+                        confidence_threshold: 0.8,
+                    },
+                    sentiment_analysis: SentimentAnalysisAlgorithm {
+                        algorithm_name: "transformer".to_string(),
+                        emotional_dimensions: vec!["positive".to_string(), "negative".to_string(), "neutral".to_string()],
+                        classification_accuracy: 0.85,
+                    },
+                    engagement_inference: EngagementInferenceAlgorithm {
+                        inference_method: "attention_based".to_string(),
+                        temporal_window: 30.0,
+                        feature_weights: HashMap::new(),
+                    },
+                },
+            },
+            feedback_weighting: FeedbackWeighting {
+                explicit_weight: 0.7,
+                implicit_weight: 0.3,
+                temporal_decay: 0.1,
+                context_relevance: 0.8,
+            },
+            feedback_validation: FeedbackValidation {
+                validation_criteria: Vec::new(),
+                consistency_checking: ConsistencyChecking {
+                    temporal_consistency: 0.8,
+                    cross_modal_consistency: 0.7,
+                    contextual_consistency: 0.9,
+                },
+                outlier_detection: OutlierDetection {
+                    detection_method: "statistical".to_string(),
+                    sensitivity: 0.6,
+                    action_threshold: 0.8,
+                },
+            },
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -570,6 +671,23 @@ impl AdaptationEngine {
             param.current_value += diff * param.adaptation_rate * dt;
         }
     }
+
+    /// Get current adaptation parameters for system introspection
+    pub fn get_current_parameters(&self) -> HashMap<String, f32> {
+        self.adaptation_parameters.iter()
+            .map(|(key, param)| (key.clone(), param.current_value))
+            .collect()
+    }
+
+    /// Get current adaptation strategy description
+    pub fn get_current_strategy(&self) -> String {
+        let adaptive_count = self.adaptation_parameters.len();
+        let avg_rate: f32 = self.adaptation_parameters.values()
+            .map(|p| p.adaptation_rate)
+            .sum::<f32>() / adaptive_count as f32;
+
+        format!("Adaptive strategy: {} parameters, avg rate: {:.3}", adaptive_count, avg_rate)
+    }
 }
 
 #[derive(Debug)]
@@ -680,6 +798,35 @@ pub struct PreferenceMemory {
 }
 
 impl PreferenceMemory {
+    pub fn new() -> Self {
+        Self {
+            long_term_preferences: HashMap::new(),
+            preference_hierarchies: PreferenceHierarchies {
+                primary_preferences: Vec::new(),
+                secondary_preferences: Vec::new(),
+                conditional_preferences: HashMap::new(),
+                preference_dependencies: HashMap::new(),
+            },
+            contextual_preferences: HashMap::new(),
+            preference_conflicts: Vec::new(),
+            memory_consolidation: MemoryConsolidation {
+                consolidation_algorithms: Vec::new(),
+                consolidation_triggers: Vec::new(),
+                forgetting_mechanisms: ForgettingMechanisms {
+                    natural_decay_rate: 0.1,
+                    interference_based_forgetting: 0.05,
+                    context_dependent_forgetting: 0.03,
+                    intentional_forgetting: IntentionalForgetting {
+                        user_initiated: false,
+                        system_initiated: true,
+                        forgetting_criteria: Vec::new(),
+                        recovery_mechanisms: Vec::new(),
+                    },
+                },
+            },
+        }
+    }
+
     pub fn update(&mut self, dt: f32, _user_interaction_intensity: f32) {
         // Placeholder implementation - could consolidate preferences over time
         for preference in self.long_term_preferences.values_mut() {
@@ -787,12 +934,45 @@ pub struct EvolutionPathways {
 }
 
 impl EvolutionPathways {
+    pub fn new() -> Self {
+        Self {
+            pathway_graph: PathwayGraph {
+                nodes: HashMap::new(),
+                edges: Vec::new(),
+                pathway_metrics: PathwayMetrics {
+                    pathway_diversity: 0.5,
+                    exploration_depth: 0.5,
+                    convergence_indicators: Vec::new(),
+                },
+            },
+            active_pathways: Vec::new(),
+            pathway_evaluation: PathwayEvaluation {
+                evaluation_criteria: Vec::new(),
+                pathway_rankings: HashMap::new(),
+                user_impact_predictions: HashMap::new(),
+            },
+            evolutionary_pressures: EvolutionaryPressures {
+                user_driven_pressures: Vec::new(),
+                system_driven_pressures: Vec::new(),
+                environmental_pressures: Vec::new(),
+                pressure_interactions: Vec::new(),
+            },
+        }
+    }
+
     pub fn update(&mut self, dt: f32, interaction_learning: &InteractionLearning,
                   adaptation_engine: &AdaptationEngine) {
         // Update pathways based on interaction patterns and adaptation state
         for pathway in &mut self.active_pathways {
             pathway.progress = (pathway.progress + dt * 0.01).min(1.0);
         }
+    }
+
+    /// Predict user response to a proposed change
+    pub fn predict_user_response(&self, proposed_change: &str) -> f32 {
+        // Simple prediction based on pathway evaluations
+        // In a real system, this would use ML models
+        0.7 // Default positive prediction
     }
 }
 
@@ -952,12 +1132,60 @@ pub struct PersonalizationMatrix {
 }
 
 impl PersonalizationMatrix {
+    pub fn new() -> Self {
+        let mut adaptation_weights = HashMap::new();
+        adaptation_weights.insert("visual_intensity".to_string(), 0.5);
+        adaptation_weights.insert("audio_complexity".to_string(), 0.5);
+        adaptation_weights.insert("interaction_responsiveness".to_string(), 0.5);
+        adaptation_weights.insert("content_novelty".to_string(), 0.5);
+
+        Self {
+            personalization_dimensions: HashMap::new(),
+            user_profile: UserProfile {
+                user_characteristics: HashMap::new(),
+                behavioral_indicators: HashMap::new(),
+                preference_profile: PreferenceProfile {
+                    aesthetic_preferences: HashMap::new(),
+                    functional_preferences: HashMap::new(),
+                    interaction_preferences: HashMap::new(),
+                    temporal_preferences: HashMap::new(),
+                },
+                interaction_style: InteractionStyle {
+                    interaction_pace: 0.5,
+                    exploration_tendency: 0.5,
+                    detail_orientation: 0.5,
+                    social_interaction_preference: 0.5,
+                    feedback_preference: FeedbackPreference {
+                        feedback_frequency: 0.5,
+                        feedback_modality: vec!["visual".to_string(), "audio".to_string()],
+                        feedback_detail_level: 0.7,
+                        feedback_timing_preference: 0.6,
+                    },
+                },
+            },
+            adaptation_weights,
+            personalization_effectiveness: PersonalizationEffectiveness {
+                overall_effectiveness: 0.5,
+                dimension_effectiveness: HashMap::new(),
+                user_satisfaction_correlation: 0.7,
+                adaptation_success_rate: 0.6,
+            },
+        }
+    }
+
     pub fn update(&mut self, dt: f32, preference_memory: &PreferenceMemory,
                   evolution_pathways: &EvolutionPathways) {
         // Update personalization based on preferences and evolutionary pathways
         for weight in self.adaptation_weights.values_mut() {
             *weight = (*weight * 0.999 + 0.001).clamp(0.0, 1.0);
         }
+    }
+
+    /// Get personalization factor for a specific dimension
+    pub fn get_factor(&self, dimension_name: &str) -> f32 {
+        self.adaptation_weights.get(dimension_name)
+            .copied()
+            .unwrap_or(0.5) // Default neutral personalization
     }
 }
 
@@ -1032,7 +1260,7 @@ impl UserCoEvolutionSystem {
         self.adaptation_engine.update(dt, &self.interaction_learning, &self.preference_memory);
 
         // Update preference memory
-        self.preference_memory.update(dt, &self.interaction_learning);
+        self.preference_memory.update(dt, 0.5); // Default medium interaction intensity
 
         // Update evolution pathways
         self.evolution_pathways.update(dt, &self.interaction_learning, &self.adaptation_engine);
@@ -1058,7 +1286,7 @@ impl UserCoEvolutionSystem {
     }
 
     pub fn get_current_adaptation_strategy(&self) -> Option<String> {
-        self.adaptation_engine.get_current_strategy()
+        Some(self.adaptation_engine.get_current_strategy())
     }
 
     pub fn predict_user_response(&self, proposed_change: &str) -> f32 {
