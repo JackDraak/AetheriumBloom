@@ -34,7 +34,7 @@ impl ConsciousnessCrystal {
     pub fn update(&mut self, cosmic_time: f64) {
         // Crystals pulse with mathematical frequencies
         let age = cosmic_time - self.spawn_time;
-        self.visual_intensity = (age * 2.0).sin().abs() * 0.5 + 0.5;
+        self.visual_intensity = (age as f32 * 2.0).sin().abs() * 0.5 + 0.5;
 
         // Some crystal types have special behaviors
         match self.crystal_type {
@@ -46,7 +46,7 @@ impl ConsciousnessCrystal {
             }
             CrystalType::CosmicGiggle => {
                 // Cosmic giggles grow in power over time
-                self.consciousness_value = 3.0 + (age * 0.1).min(2.0);
+                self.consciousness_value = 3.0 + (age as f32 * 0.1).min(2.0);
             }
             _ => {}
         }
@@ -142,7 +142,7 @@ impl CrystalField {
 
     fn random_crystal_type(&self, cosmic_time: f64) -> CrystalType {
         // Crystal rarity increases over time
-        let rarity_boost = (cosmic_time / 60.0).min(1.0); // Max boost after 1 minute
+        let rarity_boost = (cosmic_time as f32 / 60.0).min(1.0); // Max boost after 1 minute
         let roll = fastrand::f32();
 
         match roll {
@@ -158,7 +158,7 @@ impl CrystalField {
         // Spawn rate increases with fewer crystals
         let base_interval = 3.0;
         let density_factor = (self.crystals.len() as f32 / 30.0).min(1.0);
-        base_interval * (0.5 + density_factor * 0.5)
+        base_interval * (0.5 + density_factor as f64 * 0.5)
     }
 
     pub fn check_harvest(&mut self, position: Vec2, radius: f32) -> Option<ConsciousnessCrystal> {

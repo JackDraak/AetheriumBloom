@@ -22,19 +22,7 @@ use std::collections::VecDeque;
 use glam::Vec2;
 
 // Use local BeatState for audio processing
-use mathematics::BeatState;
-
-// Define compatibility types for the main application
-pub mod mathematics {
-    #[derive(Debug, Clone)]
-    pub struct BeatState {
-        pub is_beat_drop: bool,
-        pub intensity: f32,
-        pub phase: f64,
-        pub prime_factor: f32,
-        pub cosmic_frequency: f32,
-    }
-}
+use crate::mathematics::beat_engine::BeatState;
 
 // Define compatibility types locally
 

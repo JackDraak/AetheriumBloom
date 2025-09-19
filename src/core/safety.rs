@@ -106,7 +106,7 @@ impl FlashTracker {
 
         // Check minimum interval since last major change
         let time_since_last = current_time - self.last_major_change;
-        if time_since_last < safety_constants::MIN_FLASH_INTERVAL {
+        if time_since_last < safety_constants::MIN_FLASH_INTERVAL as f64 {
             return false; // Too soon since last major change
         }
 
@@ -243,7 +243,7 @@ impl ChaosDampener {
         }
 
         // Set cooldown for this entity
-        let cooldown_end = current_time + duration + safety_constants::MIN_FLASH_INTERVAL;
+        let cooldown_end = current_time + duration + safety_constants::MIN_FLASH_INTERVAL as f64;
         self.entity_flash_cooldowns.insert(entity_id, cooldown_end);
     }
 

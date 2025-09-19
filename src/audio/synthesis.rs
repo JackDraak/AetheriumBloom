@@ -190,13 +190,16 @@ impl PsychedelicSynthesizer {
 
         self.master_phase += 1.0 / self.sample_rate as f64;
 
-        // Get environment configuration
-        let config = self.environment_configs.get(environment)
-            .unwrap_or(&self.environment_configs[&AudioEnvironment::Environmental]);
+        // Get base frequency from environment configuration
+        let base_frequency = {
+            let config = self.environment_configs.get(environment)
+                .unwrap_or(&self.environment_configs[&AudioEnvironment::Environmental]);
+            config.base_frequency
+        };
 
         // Calculate consciousness-driven base frequency
         let consciousness_factor = (total_consciousness / 100.0).min(2.0);
-        let base_freq = config.base_frequency * (1.0 + consciousness_factor * 0.5);
+        let base_freq = base_frequency * (1.0 + consciousness_factor * 0.5);
 
         // Apply mathematical modulation
         let modulated_freq = self.apply_mathematical_modulation(base_freq, sample_time, beat_state);
@@ -593,21 +596,26 @@ impl OscillatorBank {
     fn generate_sample(&mut self, base_frequency: f32, sample_time: f64, intensity: f32) -> f32 {
         let mut sample = 0.0;
 
-        for (i, oscillator) in self.oscillators.iter_mut().enumerate() {
-            let detuned_freq = base_frequency * (1.0 + self.detune_amounts[i]);
-            let mix_level = self.mix_levels[i] * intensity;
+        // Copy data needed during mutable iteration
+        let detune_amounts = self.detune_amounts.clone();
+        let mix_levels = self.mix_levels.clone();
+        let oscillator_count = self.oscillators.len();
 
-            let osc_sample = self.generate_oscillator_sample(oscillator, detuned_freq, sample_time);
+        for (i, oscillator) in self.oscillators.iter_mut().enumerate() {
+            let detuned_freq = base_frequency * (1.0 + detune_amounts[i]);
+            let mix_level = mix_levels[i] * intensity;
+
+            let osc_sample = Self::generate_oscillator_sample(oscillator, detuned_freq, sample_time);
             sample += osc_sample * mix_level;
         }
 
-        sample / self.oscillators.len() as f32
+        sample / oscillator_count as f32
     }
 
-    fn generate_oscillator_sample(&self, oscillator: &mut Oscillator, frequency: f32, sample_time: f64) -> f32 {
+    fn generate_oscillator_sample(oscillator: &mut Oscillator, frequency: f32, sample_time: f64) -> f32 {
         let phase = sample_time * frequency as f64 * std::f64::consts::TAU;
 
-        match oscillator.waveform {
+        (match oscillator.waveform {
             AudioWaveform::Sine => (phase).sin() as f32,
             AudioWaveform::Sawtooth => {
                 let cycle_phase = phase % std::f64::consts::TAU;
@@ -633,6 +641,6 @@ impl OscillatorBank {
                 let chaos_wave = (fractal_phase * 7.0).sin() * 0.1;
                 (base_wave + harmonic_wave + chaos_wave) as f32 * 0.6
             },
-        } * oscillator.amplitude
+        }) * oscillator.amplitude
     }
 }

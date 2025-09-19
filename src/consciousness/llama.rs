@@ -228,7 +228,7 @@ impl LlamaAI {
         self.decision_dimensions[1] = beat_state.prime_factor * 0.1;
 
         // Dimension 2: Mercury retrograde (mathematical)
-        self.decision_dimensions[2] = ((cosmic_time * 0.01).sin() + 1.0) * 0.5;
+        self.decision_dimensions[2] = ((cosmic_time as f32 * 0.01).sin() + 1.0) * 0.5;
 
         // Dimension 3: Collective llama mood (simplified)
         self.decision_dimensions[3] = llama.consciousness_level / 10.0;
@@ -246,7 +246,7 @@ impl LlamaAI {
         self.decision_dimensions[7] = (llama.position.length() / 1000.0).sin();
 
         // Dimension 8: Temporal flow
-        self.decision_dimensions[8] = (cosmic_time * 0.1).cos();
+        self.decision_dimensions[8] = (cosmic_time as f32 * 0.1).cos();
 
         // Dimension 9: Consciousness recursion
         self.decision_dimensions[9] = (llama.consciousness_level.ln() / 10.0).max(0.0);

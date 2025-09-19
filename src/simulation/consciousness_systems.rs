@@ -1269,4 +1269,6 @@ pub struct TerritoryEffects {
     pub reality_distortion_boost: f32,
     pub memory_boost: f32,
     pub consciousness_growth_boost: f32,
+    pub quantum_boost: f32,
+    pub exploration_boost: f32,
 }
