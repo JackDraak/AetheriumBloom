@@ -740,12 +740,12 @@ impl ChaosEngine {
 
         // Update psychedelic shader uniforms
         self.uniforms.time = self.time;
-        self.uniforms.reality_distortion = self.reality_distortion.current_intensity();
+        self.uniforms.reality_distortion = self.reality_distortion.emergence_amplification;
         self.uniforms.consciousness_level = self.total_consciousness;
         self.uniforms.beat_intensity = self.beat_intensity;
         self.uniforms.screen_resolution = [self.config.width as f32, self.config.height as f32];
-        self.uniforms.beat_frequency = self.advanced_beat_engine.base_frequency();
-        self.uniforms.cosmic_phase = self.advanced_beat_engine.cosmic_phase();
+        self.uniforms.beat_frequency = self.advanced_beat_engine.primary_rhythm;
+        self.uniforms.cosmic_phase = self.advanced_beat_engine.time_accumulator as f32;
 
         // Write updated uniforms to buffer
         self.queue.write_buffer(&self.uniform_buffer, 0, bytemuck::cast_slice(&[self.uniforms]));
