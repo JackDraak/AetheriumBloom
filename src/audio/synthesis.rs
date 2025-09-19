@@ -459,113 +459,115 @@ impl PsychedelicSynthesizer {
         texture * 0.1 // Keep it subtle
     }
 
-    /// Generate procedural mood music based on research into computer-generated music
-    fn generate_mood_music(&mut self, base_freq: f32, sample_time: f64, environment: &AudioEnvironment, consciousness: f32, beat_state: &BeatState) -> f32 {
+    /// Generate ambient mood music using Brian Eno-inspired techniques
+    fn generate_mood_music(&mut self, _base_freq: f32, sample_time: f64, environment: &AudioEnvironment, consciousness: f32, _beat_state: &BeatState) -> f32 {
         match environment {
             AudioEnvironment::Environmental | AudioEnvironment::Meditative => {
-                self.generate_mellow_mood_music(base_freq, sample_time, consciousness, beat_state)
+                self.generate_eno_ambient_mellow(sample_time, consciousness)
             },
             AudioEnvironment::Psychedelic | AudioEnvironment::Electronica => {
-                self.generate_active_mood_music(base_freq, sample_time, consciousness, beat_state)
+                self.generate_eno_ambient_active(sample_time, consciousness)
             },
             AudioEnvironment::HiveMind | AudioEnvironment::RealityTear => {
-                self.generate_chaotic_mood_music(base_freq, sample_time, consciousness, beat_state)
+                self.generate_eno_ambient_chaotic(sample_time, consciousness)
             },
         }
     }
 
     /// Mellow Mood: Dorian mode, slow tempo (60-80 BPM), gentle harmonics
-    fn generate_mellow_mood_music(&mut self, base_freq: f32, sample_time: f64, consciousness: f32, beat_state: &BeatState) -> f32 {
-        // Dorian mode intervals: [0, 2, 3, 5, 7, 9, 10] semitones
-        let dorian_intervals = [1.0, 1.122, 1.189, 1.335, 1.498, 1.682, 1.782];
-        let scale_length = dorian_intervals.len();
+    fn generate_eno_ambient_mellow(&mut self, sample_time: f64, consciousness: f32) -> f32 {
+        // C Major scale frequencies (pleasant, familiar, soothing)
+        let c_major_freqs = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88]; // C4-B4
 
-        // Slow, mellow progression (60-80 BPM equivalent)
-        let progression_rate = 0.8 + consciousness * 0.4; // 0.8 to 1.2 Hz
-        let scale_index = ((sample_time * progression_rate as f64) as usize) % scale_length;
-        let current_interval = dorian_intervals[scale_index];
+        // Brian Eno's incommensurable loop technique - different loop lengths that slowly drift
+        let loop1_period = 23.5; // seconds
+        let loop2_period = 25.875; // seconds
+        let loop3_period = 29.916; // seconds
 
-        // Primary melody note
-        let melody_freq = base_freq * current_interval;
-        let melody = self.generate_sine_wave(melody_freq, self.master_phase);
+        // Select notes based on loop positions (creates slowly evolving combinations)
+        let note1_index = ((sample_time / loop1_period) as usize) % c_major_freqs.len();
+        let note2_index = ((sample_time / loop2_period) as usize) % c_major_freqs.len();
+        let note3_index = ((sample_time / loop3_period) as usize) % c_major_freqs.len();
 
-        // Gentle harmonic accompaniment (perfect fifth and octave)
-        let fifth_freq = melody_freq * 1.5; // Perfect fifth
-        let octave_freq = melody_freq * 0.5; // Octave down for bass
+        // Generate simple sine wave tones
+        let tone1 = (sample_time * c_major_freqs[note1_index] * std::f64::consts::TAU).sin() as f32;
+        let tone2 = (sample_time * c_major_freqs[note2_index] * std::f64::consts::TAU).sin() as f32;
+        let tone3 = (sample_time * c_major_freqs[note3_index] * std::f64::consts::TAU).sin() as f32;
 
-        let harmony = self.generate_sine_wave(fifth_freq, self.master_phase) * 0.3 +
-                      self.generate_sine_wave(octave_freq, self.master_phase) * 0.4;
+        // Gentle volume balancing (Eno's technique)
+        let mix = tone1 * 0.4 + tone2 * 0.3 + tone3 * 0.2;
 
-        // Gentle amplitude envelope with breathing pattern
-        let breathing_rate = 0.2; // Very slow breathing
-        let envelope = 0.7 + (self.master_phase * breathing_rate * std::f64::consts::TAU).sin() as f32 * 0.3;
+        // Subtle consciousness influence on overall amplitude
+        let consciousness_envelope = 0.3 + consciousness * 0.2; // Very gentle, stays mellow
 
-        (melody * 0.6 + harmony) * envelope * 0.4 // Keep it soft and mellow
+        mix * consciousness_envelope * 0.3 // Keep volume low for ambient background
     }
 
     /// Active Mood: Major modes (Ionian/Mixolydian), dynamic tempo (120-140 BPM)
-    fn generate_active_mood_music(&mut self, base_freq: f32, sample_time: f64, consciousness: f32, beat_state: &BeatState) -> f32 {
-        // Ionian mode (major scale): [0, 2, 4, 5, 7, 9, 11] semitones
-        let major_intervals = [1.0, 1.122, 1.260, 1.335, 1.498, 1.682, 1.888];
-        let scale_length = major_intervals.len();
+    fn generate_eno_ambient_active(&mut self, sample_time: f64, consciousness: f32) -> f32 {
+        // A Minor scale frequencies (more active, slightly more complex)
+        let a_minor_freqs = [440.00, 493.88, 523.25, 587.33, 659.25, 698.46, 783.99]; // A4-G5
 
-        // Dynamic, energetic progression (120-140 BPM equivalent)
-        let progression_rate = 2.0 + consciousness * 1.3 + beat_state.intensity; // 2.0 to 4.3 Hz
-        let scale_index = ((sample_time * progression_rate as f64) as usize) % scale_length;
-        let current_interval = major_intervals[scale_index];
+        // Faster, more active loop periods
+        let loop1_period = 18.75; // seconds
+        let loop2_period = 21.333; // seconds
+        let loop3_period = 24.125; // seconds
+        let loop4_period = 27.666; // seconds - extra layer for more activity
 
-        // Active melody with rhythmic variation
-        let melody_freq = base_freq * current_interval;
-        let rhythm_multiplier = if ((sample_time * 4.0) as usize) % 4 < 2 { 1.0 } else { 0.7 }; // 4/4 rhythm
-        let melody = self.generate_sine_wave(melody_freq, self.master_phase) * rhythm_multiplier;
+        // Select notes based on loop positions
+        let note1_index = ((sample_time / loop1_period) as usize) % a_minor_freqs.len();
+        let note2_index = ((sample_time / loop2_period) as usize) % a_minor_freqs.len();
+        let note3_index = ((sample_time / loop3_period) as usize) % a_minor_freqs.len();
+        let note4_index = ((sample_time / loop4_period) as usize) % a_minor_freqs.len();
 
-        // Energetic chord progression (major triads)
-        let third_freq = melody_freq * 1.260; // Major third
-        let fifth_freq = melody_freq * 1.498; // Perfect fifth
+        // Generate simple sine wave tones
+        let tone1 = (sample_time * a_minor_freqs[note1_index] * std::f64::consts::TAU).sin() as f32;
+        let tone2 = (sample_time * a_minor_freqs[note2_index] * std::f64::consts::TAU).sin() as f32;
+        let tone3 = (sample_time * a_minor_freqs[note3_index] * std::f64::consts::TAU).sin() as f32;
+        let tone4 = (sample_time * a_minor_freqs[note4_index] * std::f64::consts::TAU).sin() as f32;
 
-        let chord = self.generate_sine_wave(melody_freq, self.master_phase) * 0.5 +
-                    self.generate_sine_wave(third_freq, self.master_phase) * 0.3 +
-                    self.generate_sine_wave(fifth_freq, self.master_phase) * 0.3;
+        // Active volume balancing with more layers
+        let mix = tone1 * 0.35 + tone2 * 0.3 + tone3 * 0.25 + tone4 * 0.2;
 
-        // Dynamic energy with beat synchronization
-        let energy_envelope = 0.8 + beat_state.intensity * 0.4;
-        let rhythmic_pulse = if beat_state.is_beat_drop { 1.3 } else { 1.0 };
+        // More responsive to consciousness for active feel
+        let consciousness_envelope = 0.4 + consciousness * 0.4;
 
-        (melody * 0.7 + chord * 0.5) * energy_envelope * rhythmic_pulse * 0.5
+        mix * consciousness_envelope * 0.4 // Slightly louder than mellow
     }
 
     /// Chaotic Mood: Controlled mathematical chaos, complex polyrhythms
-    fn generate_chaotic_mood_music(&mut self, base_freq: f32, sample_time: f64, consciousness: f32, _beat_state: &BeatState) -> f32 {
-        // Use mathematical chaos (Lorenz attractor-inspired) for musical structure
-        let chaos_x = (sample_time * 0.3).sin() * (sample_time * 0.7).cos();
-        let chaos_y = (sample_time * 0.5).sin() * (sample_time * 1.1).cos();
+    fn generate_eno_ambient_chaotic(&mut self, sample_time: f64, consciousness: f32) -> f32 {
+        // Pentatonic scale frequencies (can't sound bad, but more unpredictable)
+        let pentatonic_freqs = [261.63, 293.66, 329.63, 392.00, 440.00]; // C D E G A
 
-        // Convert chaos to musical intervals (still within musical bounds)
-        let chaos_interval = 1.0 + chaos_x.abs() as f32 * 0.8; // 1.0 to 1.8 ratio
-        let secondary_interval = 1.0 + chaos_y.abs() as f32 * 1.2; // 1.0 to 2.2 ratio
+        // Complex but still musical loop periods (prime numbers for maximum drift)
+        let loop1_period = 17.0; // seconds
+        let loop2_period = 19.0; // seconds
+        let loop3_period = 23.0; // seconds
+        let loop4_period = 29.0; // seconds
+        let loop5_period = 31.0; // seconds - 5 layers for controlled chaos
 
-        // Polyrhythmic structure: 3 against 4 against 5
-        let rhythm_3 = ((sample_time * 3.0) % 1.0 > 0.7) as i32 as f32;
-        let rhythm_4 = ((sample_time * 4.0) % 1.0 > 0.6) as i32 as f32;
-        let rhythm_5 = ((sample_time * 5.0) % 1.0 > 0.8) as i32 as f32;
+        // Select notes based on loop positions
+        let note1_index = ((sample_time / loop1_period) as usize) % pentatonic_freqs.len();
+        let note2_index = ((sample_time / loop2_period) as usize) % pentatonic_freqs.len();
+        let note3_index = ((sample_time / loop3_period) as usize) % pentatonic_freqs.len();
+        let note4_index = ((sample_time / loop4_period) as usize) % pentatonic_freqs.len();
+        let note5_index = ((sample_time / loop5_period) as usize) % pentatonic_freqs.len();
 
-        // Multiple frequency layers with mathematical relationships
-        let primary_freq = base_freq * chaos_interval;
-        let secondary_freq = base_freq * secondary_interval;
-        let fibonacci_freq = base_freq * 1.618; // Golden ratio
+        // Generate simple sine wave tones
+        let tone1 = (sample_time * pentatonic_freqs[note1_index] * std::f64::consts::TAU).sin() as f32;
+        let tone2 = (sample_time * pentatonic_freqs[note2_index] * std::f64::consts::TAU).sin() as f32;
+        let tone3 = (sample_time * pentatonic_freqs[note3_index] * std::f64::consts::TAU).sin() as f32;
+        let tone4 = (sample_time * pentatonic_freqs[note4_index] * std::f64::consts::TAU).sin() as f32;
+        let tone5 = (sample_time * pentatonic_freqs[note5_index] * std::f64::consts::TAU).sin() as f32;
 
-        // Generate complex but musical texture
-        let primary_layer = self.generate_sine_wave(primary_freq, self.master_phase) * rhythm_3 * 0.4;
-        let secondary_layer = self.generate_sine_wave(secondary_freq, self.master_phase) * rhythm_4 * 0.3;
-        let fibonacci_layer = self.generate_sine_wave(fibonacci_freq, self.master_phase) * rhythm_5 * 0.2;
+        // Complex but balanced volume mixing
+        let mix = tone1 * 0.3 + tone2 * 0.25 + tone3 * 0.2 + tone4 * 0.15 + tone5 * 0.1;
 
-        // Controlled chaos envelope that stays musical
-        let chaos_envelope = 0.6 + (chaos_x * chaos_y).abs() as f32 * 0.4;
-        let consciousness_modulation = 1.0 + consciousness * 0.3;
+        // Highly responsive to consciousness for chaotic but controlled feel
+        let consciousness_envelope = 0.5 + consciousness * 0.5;
 
-        // Combine layers with controlled chaos
-        let chaotic_sum = primary_layer + secondary_layer + fibonacci_layer;
-        chaotic_sum * chaos_envelope * consciousness_modulation * 0.4
+        mix * consciousness_envelope * 0.5 // Loudest mode but still ambient
     }
 
     fn generate_supersaw(&self, frequency: f32, phase: f64) -> f32 {
